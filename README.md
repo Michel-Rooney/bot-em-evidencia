@@ -60,7 +60,7 @@ source venv/bin/activate
 venv/Scripts/activate
 
 # Quando ativo, irar aparecer (venv) no inicio
-(venv) user@maquina ~/bit-discord$
+(venv) user@maquina ~/bot-em-evidencia$
 ```
 
 **Note:** Para desativar rode o comando
