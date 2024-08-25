@@ -19,7 +19,7 @@ tempo_ultima_noticia = ''
 async def concursos_brasil(BOT, GUILD_ID):
     global tempo_ultima_noticia
 
-    guild = BOT.get_guild(GUILD_ID, 0)
+    guild = BOT.get_guild(GUILD_ID)
     channel = guild.get_channel(CON_BR_CHANNEL)
     response = requests.get(CON_BR_URL)
     soup = BeautifulSoup(response.text, 'html.parser')
