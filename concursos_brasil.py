@@ -63,7 +63,7 @@ async def concursos_brasil(BOT, GUILD_ID):
         description="\n".join(description)
     )
 
-    embed.set_footer(text="Mensagem enviada pelo @Bot em Evidência#3468 ")
+    embed.set_footer(text="[MENSAGEM AUTOMÁTICA] pelo @Bot em Evidência#3468")
     embed.set_thumbnail(
         url='https://i.ibb.co/KyTkq14/concursos-brasil.jpg'  # noqa: E501
     )

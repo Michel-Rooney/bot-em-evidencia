@@ -108,6 +108,6 @@ async def lock_unlock_vip(BOT, GUILD_ID):
         description=quote,
     )
 
-    embed.set_author(name='Bot em evidência [MENSAGEM AUTOMÁTICA]')
+    embed.set_footer(text="[MENSAGEM AUTOMÁTICA] pelo @Bot em Evidência#3468")
     await channel.send(embed=embed)
     await channel.set_permissions(vip_role, overwrite=overwrite)
