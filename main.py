@@ -1,5 +1,6 @@
 import discord
 from decouple import config
+from discord.ext import commands
 
 from concursos_brasil import concursos_brasil
 from lock_unlock_chat import lock_unlock_vip
@@ -10,7 +11,7 @@ GUILD_ID = int(config('GUILD_ID', 0))
 
 
 INTENTS = discord.Intents.default()
-BOT = discord.Bot(command_prefix='?', intents=INTENTS)
+BOT = commands.Bot(command_prefix='!evidencia', intents=INTENTS)
 
 
 @BOT.event
