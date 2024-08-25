@@ -8,9 +8,10 @@ from discord.ext import tasks
 
 from utils import msg_time
 
-CON_BR_CHANNEL = int(config('CHANNEL', 0))
-CON_BR_URL = config('URL', '')
-CON_BR_LOOP_INTERVAL_MIN = int(config('LOOP_INTERVAL_MIN', 10))
+CON_BR_CHANNEL_ID = int(config('CON_BR_CHANNEL_ID', 0))
+CON_BR_ROLE_NOTICIA_ID = int(config('CON_BR_ROLE_NOTICIA_ID', 0))
+CON_BR_URL = config('CON_BR_URL', '')
+CON_BR_LOOP_INTERVAL_MIN = int(config('CON_BR_LOOP_INTERVAL_MIN', 10))
 
 tempo_ultima_noticia = ''
 
@@ -20,7 +21,7 @@ async def concursos_brasil(BOT, GUILD_ID):
     global tempo_ultima_noticia
 
     guild = BOT.get_guild(GUILD_ID)
-    channel = guild.get_channel(CON_BR_CHANNEL)
+    channel = guild.get_channel(CON_BR_CHANNEL_ID)
     response = requests.get(CON_BR_URL)
     soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -68,4 +69,6 @@ async def concursos_brasil(BOT, GUILD_ID):
         url='https://i.ibb.co/KyTkq14/concursos-brasil.jpg'  # noqa: E501
     )
 
-    await channel.send(embed=embed)
+    role_noticias = guild.get_role(CON_BR_ROLE_NOTICIA_ID)
+
+    await channel.send(role_noticias.mention, embed=embed)
