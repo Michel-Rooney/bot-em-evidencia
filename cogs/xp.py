@@ -116,7 +116,7 @@ class Xp(commands.Cog):
 
         if not user:
             message = (
-                f'{member.mention} Você ainda não foi cadastrado na nossa '
+                f'{member_user.mention} Ainda não foi cadastrado na nossa '
                 'base de dados. Por favor entre na call WEBCAM ON ou '
                 'Participe de algum grupo.'
             )
