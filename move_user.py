@@ -34,8 +34,6 @@ async def move_users(BOT, GUILD_ID):
             continue
 
         try:
-            await member.move_to(target_channel)
-
             message = (
                 f'**[MODERAÇÃO ESTUDOS EM EVIDÊNCIA]** Olá **{member.name}**,'
                 'o canal **"(WEBCAM OU TELA ON)"** é apenas para câmeras ou'
@@ -43,6 +41,7 @@ async def move_users(BOT, GUILD_ID):
                 '**"GERAL"**.'
             )
             await member.send(message)
+            await member.move_to(target_channel)
 
             print(
                 f'{msg_time()} MOVE_USER: Moved',
