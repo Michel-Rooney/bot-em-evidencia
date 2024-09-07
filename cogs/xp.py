@@ -14,6 +14,7 @@ ALLOWED_CHANNELS = list(
     map(lambda x: int(x), config('ALLOWED_CHANNELS').split(', '))
 )
 GUILD_ID = int(config('GUILD_ID', 0))
+TIME_XP = int(config('TIME_XP', 300))
 
 
 class Xp(commands.Cog):
@@ -257,7 +258,7 @@ class Xp(commands.Cog):
 
     def calc_xp(self, member, total_time):
         xp_point = int(config('XP_POINT', 1))
-        xp_per_min = int(total_time.total_seconds() / 60)
+        xp_per_min = int(total_time.total_seconds() / TIME_XP)
 
         if member.premium_since is not None:
             xp_point = xp_point * 1.5
