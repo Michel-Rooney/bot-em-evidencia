@@ -29,7 +29,7 @@ class Xp(commands.Cog):
     @app_commands.command(description='ping')
     @app_commands.describe(member="Membro")
     async def ping(self, interact: discord.Interaction, member: discord.Member):
-        await interact.response.send_message(f'Pong {member.mention}')
+        await interact.response.send_message(f'Pong {member.mention}', ephemeral=True)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before, after):
@@ -126,8 +126,6 @@ class Xp(commands.Cog):
         buffer = self.criar_grafico(member, user, offset.value)
         embed, file = self.criar_embed(
             member, member_user, buffer, user, offset.value)
-        print(embed)
-        print(file)
 
         await interact.response.send_message(
             member.mention, embed=embed, file=file
