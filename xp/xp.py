@@ -1,0 +1,401 @@
+import io
+import sqlite3
+from datetime import datetime, timedelta
+
+import db
+import discord
+import matplotlib.pyplot as plt
+from dateutil.relativedelta import relativedelta
+from decouple import config
+from discord import app_commands
+
+from main import GUILD_ID, bot
+
+DB = config('DB', '')
+ALLOWED_CHANNELS = list(
+    map(lambda x: int(x), config('ALLOWED_CHANNELS').split(', '))
+)
+
+
+@bot.event
+async def on_voice_state_update(member: discord.Member, before, after):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    guild = bot.get_guild(GUILD_ID)
+
+    if before.channel is None and after.channel is not None:
+        if after.channel.id not in ALLOWED_CHANNELS:
+            return
+
+        user = db.get_user(member)
+
+        if not user:
+            user = c.execute('''
+                INSERT INTO user (discord_id, guild_id, xp)
+                VALUES (?, ?, ?)
+            ''', (member.id, guild.id, 0))
+
+            conn.commit()
+            user = db.get_user(member)
+
+        c.execute('''
+            INSERT INTO study (
+                user,
+                start_time,
+                channel_id
+            ) VALUES (?, ?, ?)
+        ''', (user[0], time_now(), after.channel.id))
+        conn.commit()
+
+    elif before.channel is not None and after.channel is None:
+        if before.channel.id not in ALLOWED_CHANNELS:
+            return
+
+        user = db.get_user(member)
+        study = db.get_study_by_user(user[0])
+
+        start_time = convert_time(study[2])
+        end_time = time_now()
+        end_time_converted = convert_time(time_now())
+        total_time = end_time_converted - start_time
+        xp = calc_xp(member, total_time)
+
+        c.execute('''
+            UPDATE study
+            SET end_time = ?,
+                total_time = ?,
+                xp = ?
+            WHERE id = ?
+        ''', (end_time, int(total_time.total_seconds()), xp, study[0]))
+
+        c.execute('''
+            UPDATE user
+            SET xp = ?
+            WHERE id = ?
+        ''', (user[3] + xp, user[0]))
+
+        conn.commit()
+
+    conn.close()
+
+
+@bot.tree.command(description='Mostra as estatísticas de xp do user.')
+@app_commands.describe(
+    offset="O período de tempo para o gráfico.",
+    member_user="Usuário que deseja visualizar as estatísticas."
+)
+@app_commands.choices(offset=[
+    app_commands.Choice(name='Dia', value='day'),
+    app_commands.Choice(name='Semana', value='week'),
+    app_commands.Choice(name='Mês', value='month'),
+    app_commands.Choice(name='Ano', value='year'),
+])
+async def xp(
+        interact: discord.Interaction,
+        offset: app_commands.Choice[str],
+        member_user: discord.Member
+):
+    member: discord.Member = interact.user
+
+    user = db.get_user(member_user)
+    buffer = criar_grafico(member, user, offset.value)
+    embed, file = criar_embed(member, member_user, buffer, user, offset.value)
+
+    await interact.response.send_message(
+        member.mention, embed=embed, file=file
+    )
+
+
+@bot.tree.command(description='Mostra o rank de xp.')
+@app_commands.describe(
+    member="Mostra a posição do usuário no rank."
+)
+async def rank(interact: discord.Interaction, member: discord.Member):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    users_rank = '''
+        WITH RankedUsers AS (
+            SELECT
+                id,
+                discord_id,
+                xp,
+                RANK() OVER (ORDER BY xp DESC) AS position
+            FROM user
+        )
+        SELECT *
+        FROM RankedUsers
+        LIMIT 5
+    '''
+
+    user_position = user_position_rank(member)
+    users_position = c.execute(users_rank).fetchall()
+
+    rank_users_embed = []
+    for user in users_position:
+        user_discord = interact.guild.get_member(user[1])
+        user_mention = user[1]
+
+        if user_discord is not None:
+            user_mention = user_discord.mention
+
+        rank_users_embed.append(
+            f'#{user[3]} | {user_mention} - XP: `{int(user[2])}`'
+        )
+
+    user_rank_discord = interact.guild.get_member(user_position[1])
+    message = (
+        f'**#{user_position[3]} | {user_rank_discord.mention} '
+        f'- XP: `{int(user[2])}`**'
+    )
+    rank_users_embed.append(message)
+
+    embed = discord.Embed(
+        title="📋 Rank do servidor"
+    )
+
+    embed.add_field(
+        name='🎙Top 5 - Voz',
+        value='\n'.join(rank_users_embed),
+        inline=False,
+    )
+
+    c.close()
+    await interact.response.send_message(member.mention, embed=embed)
+
+
+def time_now():
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def convert_time(time):
+    return datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+
+
+def calc_xp(member, total_time):
+    xp_point = int(config('XP_POINT', 1))
+    xp_per_min = int(total_time.total_seconds() / 60)
+
+    if member.premium_since is not None:
+        xp_point = xp_point * 1.5
+
+    xp = 0
+    if xp_per_min > 0:
+        xp = xp_per_min * xp_point
+
+    return xp
+
+
+def total_horas_embed(user):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    total_horas_sum = c.execute('''
+        SELECT SUM(total_time) FROM study
+        WHERE user = ?
+    ''', (user[0],)).fetchone()[0]
+
+    horas, minutos = 0, 0
+
+    if total_horas_sum is not None:
+        total_horas = total_horas_sum / 3600
+        horas = int(total_horas)
+        minutos = int((total_horas - horas) * 60)
+
+    conn.close()
+
+    return horas, minutos
+
+
+def canal_mais_usa(user):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    canal_db = c.execute('''
+        SELECT channel_id, COUNT(channel_id), SUM(total_time) AS occurrences
+        FROM study
+        WHERE user = ?
+        GROUP BY channel_id
+        ORDER BY occurrences DESC
+        LIMIT 1
+    ''', (user[0],)).fetchone()
+
+    guild = bot.get_guild(GUILD_ID)
+    canal = guild.get_channel(canal_db[0])
+
+    horas, minutos = 0, 0
+
+    if canal_db[2] > 0:
+        total_horas = canal_db[2] / 3600
+        horas = int(total_horas)
+        minutos = int((total_horas - horas) * 60)
+
+    c.close()
+    return canal, horas, minutos
+
+
+def user_position_rank(member):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    user = db.get_user(member)
+
+    user_rank = '''
+        WITH RankedUsers AS (
+            SELECT
+                id,
+                discord_id,
+                xp,
+                RANK() OVER (ORDER BY xp DESC) AS position
+            FROM user
+        )
+        SELECT *
+        FROM RankedUsers
+        WHERE id = ?;
+    '''
+
+    user_position = c.execute(user_rank, (user[0],)).fetchone()
+    c.close()
+
+    return user_position
+
+
+def criar_embed(member, member_user, buffer, user, offset='week'):
+    horas, minutos = total_horas_embed(user)
+    canal, canal_horas, canal_minutos = canal_mais_usa(user)
+    canal_tempo = f'**{canal_horas}h {canal_minutos}min**'
+
+    user_position = user_position_rank(member)
+
+    match offset:
+        case 'day':
+            title_day = 'do dia'
+        case 'week':
+            title_day = 'semanal'
+        case 'month':
+            title_day = 'mensal'
+        case 'year':
+            title_day = 'anual'
+
+    embed = discord.Embed(
+        title=f'Estatísticas {title_day} de {member_user.name}',
+    )
+
+    embed.add_field(
+        name=f'{member_user.name}, você tem',
+        value=f'{int(user[3])} xp 😎',
+        inline=True
+    )
+
+    embed.add_field(
+        name='Tempo total de estudos',
+        value=f'{horas}h {minutos}min',
+        inline=True
+    )
+
+    embed.add_field(
+        name='Posição no rank',
+        value=f'#{user_position[3]}',
+        inline=True
+    )
+
+    embed.add_field(
+        name='Canal de voz mais conectado 🔊',
+        value=f'{canal} - {canal_tempo}',
+        inline=False
+    )
+
+    embed.set_footer(text=f'{datetime.now().strftime("%d %b %Y %H:%M:%S")}')
+
+    buffer.seek(0)
+    file = discord.File(fp=buffer, filename='grafico.png')
+    embed.set_image(url='attachment://grafico.png')
+
+    return embed, file
+
+
+def dados_grafico(user, days=6):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    today = datetime.now()
+    categorias = []
+    valores = []
+
+    for i in range(days, -1, -1):
+        dia = today - timedelta(days=i)
+        data_formatada = dia.strftime('%Y-%m-%d')
+        categorias.append(dia.strftime('%d/%m'))
+
+        total_time_sum = c.execute('''
+            SELECT SUM(total_time) FROM study
+            WHERE user = ? AND DATE(created_at) = ?
+        ''', (user[0], data_formatada)).fetchone()[0]
+
+        if total_time_sum is None:
+            valores.append(0)
+            continue
+
+        valor = int(total_time_sum / 3600)
+        valores.append(valor)
+
+    conn.close()
+    return categorias, valores
+
+
+def dados_grafico_year(user, months=11):
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    today = datetime.now()
+    categorias = []
+    valores = []
+
+    for i in range(months, -1, -1):
+        dia = today - relativedelta(months=i)
+        data_formatada = dia.strftime('%Y-%m')
+        categorias.append(dia.strftime('%m/%Y'))
+
+        total_time_sum = c.execute('''
+            SELECT SUM(total_time) FROM study
+            WHERE user = ? AND strftime('%Y-%m', created_at) = ?
+        ''', (user[0], data_formatada)).fetchone()[0]
+
+        if total_time_sum is None:
+            valores.append(0)
+            continue
+
+        valor = int(total_time_sum / 3600)
+        valores.append(valor)
+
+    conn.close()
+    return categorias, valores
+
+
+def criar_grafico(member, user, offset='week'):
+    today = datetime.now()
+
+    match offset:
+        case 'day':
+            categorias, valores = dados_grafico(user, days=1)
+        case 'week':
+            categorias, valores = dados_grafico(user, days=6)
+        case 'month':
+            categorias, valores = dados_grafico(user, days=29)
+        case 'year':
+            categorias, valores = dados_grafico_year(user, months=11)
+
+    plt.bar(categorias, valores)
+    plt.xlabel('Dia')
+    plt.ylabel('Horas')
+    plt.title(f'Gráfico de Horas Estudadas {today.year} - {member.name}')
+
+    plt.xticks(rotation=45, fontsize=6)
+
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(1)
+
+    plt.clf()
+    return buffer
