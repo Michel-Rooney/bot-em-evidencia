@@ -113,9 +113,21 @@ class Xp(commands.Cog):
         member: discord.Member = interact.user
 
         user = self.get_user(member_user)
+
+        if not user:
+            message = (
+                f'{member.mention} Você ainda não foi cadastrado na nossa '
+                'base de dados. Por favor entre na call WEBCAM ON ou '
+                'Participe de algum grupo.'
+            )
+            await interact.response.send_message(message, ephemeral=True)
+            return
+
         buffer = self.criar_grafico(member, user, offset.value)
         embed, file = self.criar_embed(
             member, member_user, buffer, user, offset.value)
+        print(embed)
+        print(file)
 
         await interact.response.send_message(
             member.mention, embed=embed, file=file
@@ -144,6 +156,16 @@ class Xp(commands.Cog):
         '''
 
         user_position = self.user_position_rank(member)
+
+        if not user_position:
+            message = (
+                f'{member.mention} Você ainda não foi cadastrado na nossa '
+                'base de dados. Por favor entre na call WEBCAM ON ou '
+                'Participe de algum grupo.'
+            )
+            await interact.response.send_message(message, ephemeral=True)
+            return
+
         users_position = c.execute(users_rank).fetchall()
 
         rank_users_embed = []
@@ -161,7 +183,7 @@ class Xp(commands.Cog):
         user_rank_discord = interact.guild.get_member(user_position[1])
         message = (
             f'**#{user_position[3]} | {user_rank_discord.mention} '
-            f'- XP: `{int(user[2])}`**'
+            f'- XP: `{int(user_position[2])}`**'
         )
         rank_users_embed.append(message)
 
@@ -307,10 +329,11 @@ class Xp(commands.Cog):
 
         horas, minutos = 0, 0
 
-        if canal_db[2] > 0:
-            total_horas = canal_db[2] / 3600
-            horas = int(total_horas)
-            minutos = int((total_horas - horas) * 60)
+        if canal_db[2] is not None:
+            if canal_db[2] > 0:
+                total_horas = canal_db[2] / 3600
+                horas = int(total_horas)
+                minutos = int((total_horas - horas) * 60)
 
         c.close()
         return canal, horas, minutos
@@ -320,6 +343,9 @@ class Xp(commands.Cog):
         c = conn.cursor()
 
         user = self.get_user(member)
+
+        if not user:
+            return None
 
         user_rank = '''
             WITH RankedUsers AS (
