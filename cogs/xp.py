@@ -9,6 +9,8 @@ from decouple import config
 from discord import app_commands
 from discord.ext import commands
 
+from utils import msg_time
+
 DB = config('DB', '')
 ALLOWED_CHANNELS = list(
     map(lambda x: int(x), config('ALLOWED_CHANNELS').split(', '))
@@ -28,30 +30,30 @@ class Xp(commands.Cog):
 
     @app_commands.command(description='ping')
     @app_commands.describe(member="Membro")
-    async def ping(self, interact: discord.Interaction, member: discord.Member):
-        await interact.response.send_message(f'Pong {member.mention}', ephemeral=True)
+    async def ping(
+        self,
+        interact: discord.Interaction,
+        member: discord.Member
+    ):
+        await interact.response.send_message(
+            f'Pong {member.mention}', ephemeral=True
+        )
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member: discord.Member, before, after):
+    async def on_voice_state_update(
+        self,
+        member: discord.Member,
+        before,
+        after
+    ):
         conn = sqlite3.connect(DB)
         c = conn.cursor()
-
-        guild = self.bot.get_guild(GUILD_ID)
 
         if before.channel is None and after.channel is not None:
             if after.channel.id not in ALLOWED_CHANNELS:
                 return
 
             user = self.get_user(member)
-
-            if not user:
-                user = c.execute('''
-                    INSERT INTO user (discord_id, guild_id, xp)
-                    VALUES (?, ?, ?)
-                ''', (member.id, guild.id, 0))
-
-                conn.commit()
-                user = self.get_user(member)
 
             c.execute('''
                 INSERT INTO study (
@@ -90,6 +92,64 @@ class Xp(commands.Cog):
             ''', (user[3] + xp, user[0]))
 
             conn.commit()
+
+        if before.channel is not None and after.channel is not None:
+            before_id = before.channel.id
+            after_id = after.channel.id
+
+            if before_id not in ALLOWED_CHANNELS:
+                if after_id in ALLOWED_CHANNELS:
+                    user = self.get_user(member)
+
+                    c.execute('''
+                        INSERT INTO study (
+                            user,
+                            start_time,
+                            channel_id
+                        ) VALUES (?, ?, ?)
+                    ''', (user[0], self.time_now(), after.channel.id))
+                    conn.commit()
+
+            if before_id in ALLOWED_CHANNELS:
+                try:
+                    user = self.get_user(member)
+                    study = self.get_study_by_user(user[0])
+
+                    start_time = self.convert_time(study[2])
+                    end_time = self.time_now()
+                    end_time_converted = self.convert_time(self.time_now())
+                    total_time = end_time_converted - start_time
+                    xp = self.calc_xp(member, total_time)
+
+                    c.execute('''
+                        UPDATE study
+                        SET end_time = ?,
+                            total_time = ?,
+                            xp = ?
+                        WHERE id = ?
+                    ''', (end_time, int(total_time.total_seconds()), xp, study[0]))
+
+                    c.execute('''
+                        UPDATE user
+                        SET xp = ?
+                        WHERE id = ?
+                    ''', (user[3] + xp, user[0]))
+
+                    conn.commit()
+                except Exception as err:
+                    print(f'{msg_time()} UPDATE BEFORE IN ALLOWED_CHANNELS - {err}')
+
+                if after_id in ALLOWED_CHANNELS:
+                    user = self.get_user(member)
+
+                    c.execute('''
+                        INSERT INTO study (
+                            user,
+                            start_time,
+                            channel_id
+                        ) VALUES (?, ?, ?)
+                    ''', (user[0], self.time_now(), after.channel.id))
+                    conn.commit()
 
         conn.close()
 
@@ -135,7 +195,11 @@ class Xp(commands.Cog):
     @app_commands.describe(
         member="Mostra a posição do usuário no rank."
     )
-    async def rank(self, interact: discord.Interaction, member: discord.Member):
+    async def rank(
+        self,
+        interact: discord.Interaction,
+        member: discord.Member
+    ):
         conn = sqlite3.connect(DB)
         c = conn.cursor()
 
@@ -235,9 +299,20 @@ class Xp(commands.Cog):
         conn = sqlite3.connect(DB)
         c = conn.cursor()
 
+        guild = self.bot.get_guild(GUILD_ID)
+
         user = c.execute('''
             SELECT * FROM user WHERE discord_id = ?
         ''', (member.id,)).fetchone()
+
+        if not user:
+            user = c.execute('''
+                INSERT INTO user (discord_id, guild_id, xp)
+                VALUES (?, ?, ?)
+            ''', (member.id, guild.id, 0))
+
+            conn.commit()
+            user = self.get_user(member)
 
         conn.close()
         return user
@@ -323,15 +398,19 @@ class Xp(commands.Cog):
         ''', (user[0],)).fetchone()
 
         guild = self.bot.get_guild(GUILD_ID)
-        canal = guild.get_channel(canal_db[0])
 
+        canal = 'Nenhum canal registrado'
         horas, minutos = 0, 0
 
-        if canal_db[2] is not None:
-            if canal_db[2] > 0:
-                total_horas = canal_db[2] / 3600
-                horas = int(total_horas)
-                minutos = int((total_horas - horas) * 60)
+        if canal_db is not None:
+            if canal[0] is not None:
+                canal = guild.get_channel(canal_db[0])
+
+            if canal_db[2] is not None:
+                if canal_db[2] > 0:
+                    total_horas = canal_db[2] / 3600
+                    horas = int(total_horas)
+                    minutos = int((total_horas - horas) * 60)
 
         c.close()
         return canal, horas, minutos
