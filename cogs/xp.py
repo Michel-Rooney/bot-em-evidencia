@@ -519,7 +519,7 @@ class Xp(commands.Cog):
                 valores.append(0)
                 continue
 
-            valor = int(total_time_sum / 3600)
+            valor = round(total_time_sum / 3600, 2)
             valores.append(valor)
 
         conn.close()
@@ -547,7 +547,7 @@ class Xp(commands.Cog):
                 valores.append(0)
                 continue
 
-            valor = int(total_time_sum / 3600)
+            valor = round(total_time_sum / 3600, 2)
             valores.append(valor)
 
         conn.close()
@@ -566,12 +566,16 @@ class Xp(commands.Cog):
             case 'year':
                 categorias, valores = self.dados_grafico_year(user, months=11)
 
-        plt.bar(categorias, valores)
+        bar = plt.bar(categorias, valores)
         plt.xlabel('Dia')
         plt.ylabel('Horas')
         plt.title(f'Gráfico de Horas Estudadas {today.year} - {member.name}')
 
         plt.xticks(rotation=45, fontsize=6)
+        plt.bar_label(bar)
+
+        ax = plt.gca()
+        ax.set_ylim(0)
 
         buffer = io.BytesIO()
         plt.savefig(buffer, format='png')
