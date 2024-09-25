@@ -355,8 +355,8 @@ class Xp(commands.Cog):
         xp_point = int(config('XP_POINT', 1))
         xp_per_min = int(total_time.total_seconds() / TIME_XP)
 
-        if member.premium_since is not None:
-            xp_point = xp_point * 1.5
+        # if member.premium_since is not None:
+        #     xp_point = xp_point * 1.5
 
         xp = 0
         if xp_per_min > 0:
