@@ -484,7 +484,7 @@ class Xp(commands.Cog):
                 JOIN
                     study s ON u.id = s.user
                 WHERE
-                    strftime('%Y-%W', s.created_at) = strftime('%Y-%W', 'now')
+                    strftime('%Y-%m', s.created_at) = strftime('%Y-%m', 'now')
                 GROUP BY
                     u.id, u.discord_id
             )
@@ -548,7 +548,7 @@ class Xp(commands.Cog):
                 JOIN
                     study s ON u.id = s.user
                 WHERE
-                    strftime('%Y-%W', s.created_at) = strftime('%Y-%W', 'now')
+                    strftime('%Y-%m', s.created_at) = strftime('%Y-%m', 'now')
                 GROUP BY
                     u.id, u.discord_id
             )
