@@ -4,6 +4,7 @@ import random
 import discord
 from decouple import config
 from discord.ext import tasks
+from discord.ext.commands import Bot
 
 LOCK_CHANNEL_ID = int(config('LOCK_CHANNEL_ID', 0))
 UTC = int(config('UTC', 1))
@@ -23,7 +24,7 @@ TIME_TO_OPEN = datetime.time(hour=H_OPEN, minute=M_OPEN, tzinfo=TZ)
 TIME_TO_CLOSE = datetime.time(hour=H_CLOSE, minute=M_CLOSE, tzinfo=TZ)
 
 
-MOTIVATIONAL_QUOTES = [
+MOTIVATIONAL_QUOTES: list[str] = [
     "Você é mais forte do que imagina.",
     "Nunca desista dos seus sonhos.",
     "Acredite em si mesmo e tudo será possível.",
@@ -56,7 +57,7 @@ MOTIVATIONAL_QUOTES = [
     "Você é capaz de realizar coisas incríveis."
 ]
 
-SLEEP_MOTIVATIONAL_QUOTES = [
+SLEEP_MOTIVATIONAL_QUOTES: list[str] = [
     "Uma boa noite de sono é o melhor investimento para um dia produtivo.",
     "Dormir bem é o primeiro passo para acordar com energia e motivação.",
     "O descanso adequado é a chave para uma mente e corpo saudáveis.",
@@ -71,8 +72,12 @@ SLEEP_MOTIVATIONAL_QUOTES = [
 
 
 @tasks.loop(time=[TIME_TO_OPEN, TIME_TO_CLOSE])
-async def lock_unlock_vip(BOT, GUILD_ID):
-    guild = BOT.get_guild(GUILD_ID)
+async def lock_unlock_vip(bot: Bot, GUILD_ID: int) -> None:
+    """
+    Libera e bloqueia o chat geral
+    """
+
+    guild = bot.get_guild(GUILD_ID)
     channel = guild.get_channel(int(LOCK_CHANNEL_ID))
 
     vip_role = guild.get_role(ROLE_ID)

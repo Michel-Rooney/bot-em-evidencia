@@ -5,12 +5,11 @@ import discord
 from decouple import config
 from discord.ext import commands
 
-from concursos_brasil import concursos_brasil
-from lock_unlock_chat import lock_unlock_vip
-from move_user import move_users
+from app import concursos_brasil, lock_unlock_vip, move_users
 
 TOKEN = config('TOKEN', '')
 GUILD_ID = int(config('GUILD_ID', 0))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!b3e ', intents=intents)
@@ -31,9 +30,11 @@ async def sync(ctx: commands.Context):
 
 
 async def load():
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
-            await bot.load_extension(f'cogs.{filename[:-3]}')
+    path = os.path.join(BASE_DIR, 'app/cogs')
+
+    for filename in os.listdir(path):
+        if filename.endswith('.py') and not ('__init__' in filename):
+            await bot.load_extension(f'app.cogs.{filename[:-3]}')
 
 
 async def main():

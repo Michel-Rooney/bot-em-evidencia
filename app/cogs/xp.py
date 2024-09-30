@@ -1,15 +1,17 @@
 import io
 import sqlite3
 from datetime import datetime, timedelta
+from typing import Optional
 
 import discord
 import matplotlib.pyplot as plt
 from dateutil.relativedelta import relativedelta
 from decouple import config
-from discord import app_commands
+from discord import VoiceState, app_commands
 from discord.ext import commands
+from discord.ext.commands import Bot
 
-from utils import msg_time
+from app.utils import msg_time
 
 DB = config('DB', '')
 ALLOWED_CHANNELS = list(
@@ -18,13 +20,19 @@ ALLOWED_CHANNELS = list(
 GUILD_ID = int(config('GUILD_ID', 0))
 TIME_XP = int(config('TIME_XP', 300))
 
+LIMIT = int(config('LIMIT', 10))
+
 
 class Xp(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, bot: Bot) -> None:
+        self.bot: Bot = bot
 
     @commands.Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
+        """
+        Faz os primeiros ajustes
+        """
+
         self.migrations()
         print(f'Cog - {__name__} is online')
 
@@ -33,8 +41,15 @@ class Xp(commands.Cog):
     async def ping(
         self,
         interact: discord.Interaction,
-        member: discord.Member
-    ):
+        member: Optional[discord.Member] = None,
+    ) -> None:
+        """
+        Retorna pong para testar a conectividade do bot
+        """
+
+        if member is None:
+            member = interact.user
+
         await interact.response.send_message(
             f'Pong {member.mention}', ephemeral=True
         )
@@ -43,9 +58,13 @@ class Xp(commands.Cog):
     async def on_voice_state_update(
         self,
         member: discord.Member,
-        before,
-        after
-    ):
+        before: VoiceState,
+        after: VoiceState
+    ) -> None:
+        """
+        Monitora as ações dos usuários nas calls
+        """
+
         conn = sqlite3.connect(DB)
         c = conn.cursor()
 
@@ -156,7 +175,7 @@ class Xp(commands.Cog):
     @app_commands.command(description='Mostra as estatísticas de xp do user.')
     @app_commands.describe(
         offset="O período de tempo para o gráfico.",
-        member_user="Usuário que deseja visualizar as estatísticas."
+        target_member="Usuário que deseja visualizar as estatísticas."
     )
     @app_commands.choices(offset=[
         app_commands.Choice(name='Dia', value='day'),
@@ -167,16 +186,26 @@ class Xp(commands.Cog):
     async def xp(
             self,
             interact: discord.Interaction,
-            offset: app_commands.Choice[str],
-            member_user: discord.Member
-    ):
+            offset: Optional[app_commands.Choice[str]] = None,
+            target_member: Optional[discord.Member] = None
+    ) -> None:
+        """
+        Retorna as informações referente ao XP
+        """
+
+        if offset is None:
+            offset = app_commands.Choice(name='Semana', value='week')
+
+        if target_member is None:
+            target_member = interact.user
+
         member: discord.Member = interact.user
 
-        user = self.get_user(member_user)
+        user = self.get_user(target_member)
 
         if not user:
             message = (
-                f'{member_user.mention} Ainda não foi cadastrado na nossa '
+                f'{target_member.mention} Ainda não foi cadastrado na nossa '
                 'base de dados. Por favor entre na call WEBCAM ON ou '
                 'Participe de algum grupo.'
             )
@@ -185,7 +214,7 @@ class Xp(commands.Cog):
 
         buffer = self.criar_grafico(member, user, offset.value)
         embed, file = self.criar_embed(
-            member, member_user, buffer, user, offset.value)
+            member, target_member, buffer, user, offset.value)
 
         await interact.response.send_message(
             member.mention, embed=embed, file=file
@@ -193,42 +222,43 @@ class Xp(commands.Cog):
 
     @app_commands.command(description='Mostra o rank de xp.')
     @app_commands.describe(
-        member="Mostra a posição do usuário no rank."
+        member="Mostra a posição do usuário no rank.",
+        mensal="Mostra o rank do mês",
     )
+    @app_commands.choices(mensal=[
+        app_commands.Choice(name='Sim', value='1'),
+        app_commands.Choice(name='Não', value='0'),
+    ])
     async def rank(
         self,
         interact: discord.Interaction,
-        member: discord.Member
+        member: Optional[discord.Member] = None,
+        mensal: Optional[app_commands.Choice[str]] = None,
     ):
+        if member is None:
+            member = interact.user
+
+        if mensal is None:
+            mensal = app_commands.Choice(name='Não', value='0')
+
+        if mensal.value == '1':
+            user_position = self.user_position_rank_month(member)
+            users_position = self.users_position_rank_month()
+        else:
+            user_position = self.user_position_rank(member)
+            users_position = self.users_position_rank()
+
         conn = sqlite3.connect(DB)
         c = conn.cursor()
-
-        users_rank = '''
-            WITH RankedUsers AS (
-                SELECT
-                    id,
-                    discord_id,
-                    xp,
-                    RANK() OVER (ORDER BY xp DESC) AS position
-                FROM user
-            )
-            SELECT *
-            FROM RankedUsers
-            LIMIT 5
-        '''
-
-        user_position = self.user_position_rank(member)
 
         if not user_position:
             message = (
                 f'{member.mention} Você ainda não foi cadastrado na nossa '
-                'base de dados. Por favor entre na call WEBCAM ON ou '
+                'base de dados do mês. Por favor entre na call WEBCAM ON ou '
                 'Participe de algum grupo.'
             )
             await interact.response.send_message(message, ephemeral=True)
             return
-
-        users_position = c.execute(users_rank).fetchall()
 
         rank_users_embed = []
         for user in users_position:
@@ -254,7 +284,7 @@ class Xp(commands.Cog):
         )
 
         embed.add_field(
-            name='🎙Top 5 - Voz',
+            name=f'🎙Top {LIMIT} - Voz',
             value='\n'.join(rank_users_embed),
             inline=False,
         )
@@ -415,6 +445,59 @@ class Xp(commands.Cog):
         c.close()
         return canal, horas, minutos
 
+    def users_position_rank(self):
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+
+        users_rank = f'''
+            WITH RankedUsers AS (
+                SELECT
+                    id,
+                    discord_id,
+                    xp,
+                    RANK() OVER (ORDER BY xp DESC) AS position
+                FROM user
+            )
+            SELECT *
+            FROM RankedUsers
+            LIMIT {LIMIT}
+        '''
+
+        users_position = c.execute(users_rank).fetchall()
+        c.close()
+
+        return users_position
+
+    def users_position_rank_month(self):
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+
+        users_rank = f'''
+            WITH RankedUsers AS (
+                SELECT
+                    u.id,
+                    u.discord_id,
+                    SUM(s.xp) AS total_xp,
+                    RANK() OVER (ORDER BY SUM(s.xp) DESC) AS position
+                FROM
+                    user u
+                JOIN
+                    study s ON u.id = s.user
+                WHERE
+                    strftime('%Y-%W', s.created_at) = strftime('%Y-%W', 'now')
+                GROUP BY
+                    u.id, u.discord_id
+            )
+            SELECT *
+            FROM RankedUsers
+            LIMIT {LIMIT}
+        '''
+
+        users_position = c.execute(users_rank).fetchall()
+        c.close()
+
+        return users_position
+
     def user_position_rank(self, member):
         conn = sqlite3.connect(DB)
         c = conn.cursor()
@@ -439,6 +522,43 @@ class Xp(commands.Cog):
         '''
 
         user_position = c.execute(user_rank, (user[0],)).fetchone()
+        c.close()
+
+        return user_position
+
+    def user_position_rank_month(self, member):
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+
+        user = self.get_user(member)
+        print(user)
+
+        if not user:
+            return None
+
+        user_rank = '''
+            WITH RankedUsers AS (
+                SELECT
+                    u.id,
+                    u.discord_id,
+                    SUM(s.xp) AS total_xp,
+                    RANK() OVER (ORDER BY SUM(s.xp) DESC) AS position
+                FROM
+                    user u
+                JOIN
+                    study s ON u.id = s.user
+                WHERE
+                    strftime('%Y-%W', s.created_at) = strftime('%Y-%W', 'now')
+                GROUP BY
+                    u.id, u.discord_id
+            )
+            SELECT *
+            FROM RankedUsers
+            WHERE id = ?
+        '''
+
+        user_position = c.execute(user_rank, (user[0],)).fetchone()
+
         c.close()
 
         return user_position

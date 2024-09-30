@@ -5,8 +5,9 @@ import requests
 from bs4 import BeautifulSoup
 from decouple import config
 from discord.ext import tasks
+from discord.ext.commands import Bot
 
-from utils import msg_time
+from app.utils import msg_time
 
 CON_BR_CHANNEL_ID = int(config('CON_BR_CHANNEL_ID', 0))
 CON_BR_ROLE_NOTICIA_ID = int(config('CON_BR_ROLE_NOTICIA_ID', 0))
@@ -17,10 +18,14 @@ tempo_ultima_noticia = ''
 
 
 @tasks.loop(minutes=CON_BR_LOOP_INTERVAL_MIN)
-async def concursos_brasil(BOT, GUILD_ID):
+async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
+    """
+    Envia as notícias do site Concursos Brasil
+    """
+
     global tempo_ultima_noticia
 
-    guild = BOT.get_guild(GUILD_ID)
+    guild = bot.get_guild(GUILD_ID)
     channel = guild.get_channel(CON_BR_CHANNEL_ID)
     response = requests.get(CON_BR_URL)
     soup = BeautifulSoup(response.text, 'html.parser')
