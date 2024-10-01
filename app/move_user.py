@@ -5,20 +5,29 @@ from discord.ext.commands import Bot
 from app.utils import msg_time
 
 MOVE_USER_LOOP_INTERVAL_MIN = int(config('MOVE_USER_LOOP_INTERVAL_MIN', 2))
-MOVE_USER_SOURCE_CHANNEL_ID = int(config('MOVE_USER_SOURCE_CHANNEL_ID', 0))
+MOVE_USER_SOURCE_CHANNEL_ID = list(map(lambda id: int(id), config(
+    'MOVE_USER_SOURCE_CHANNEL_ID', 0
+).split(', ')))
 MOVE_USER_TARGET_CHANNEL_ID = int(config('MOVE_USER_TARGET_CHANNEL_ID', 0))
 
 
-@tasks.loop(minutes=MOVE_USER_LOOP_INTERVAL_MIN)
+@ tasks.loop(minutes=MOVE_USER_LOOP_INTERVAL_MIN)
 async def move_users(bot: Bot, GUILD_ID: int) -> None:
     """
     Move os usuários da call, no qual não estão com a câmera
     ou a transmissão ligada
     """
 
+    members = []
     guild = bot.get_guild(GUILD_ID)
-    source_channel = guild.get_channel(MOVE_USER_SOURCE_CHANNEL_ID)
+    source_channel = map(
+        lambda id: guild.get_channel(id),
+        MOVE_USER_SOURCE_CHANNEL_ID
+    )
     target_channel = guild.get_channel(MOVE_USER_TARGET_CHANNEL_ID)
+
+    for channel in source_channel:
+        members.extend(channel.members)
 
     if (not source_channel) or (not target_channel):
         print(
@@ -27,7 +36,7 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
         )
         return
 
-    for member in source_channel.members:
+    for member in members:
         if member.bot:
             print(
                 '{msg_time()} MOVE_USER: Bot',
