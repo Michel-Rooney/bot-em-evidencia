@@ -18,7 +18,7 @@ ALLOWED_CHANNELS = list(
     map(lambda x: int(x), config('ALLOWED_CHANNELS').split(', '))
 )
 GUILD_ID = int(config('GUILD_ID', 0))
-TIME_XP = int(config('TIME_XP', 300))
+TIME_XP = int(config('TIME_XP', 60))
 
 LIMIT = int(config('LIMIT', 10))
 
