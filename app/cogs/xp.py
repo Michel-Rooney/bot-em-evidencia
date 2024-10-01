@@ -235,6 +235,8 @@ class Xp(commands.Cog):
         member: Optional[discord.Member] = None,
         mensal: Optional[app_commands.Choice[str]] = None,
     ):
+        mensal_msg = ''
+
         if member is None:
             member = interact.user
 
@@ -244,6 +246,7 @@ class Xp(commands.Cog):
         if mensal.value == '1':
             user_position = self.user_position_rank_month(member)
             users_position = self.users_position_rank_month()
+            mensal_msg = '(Mês)'
         else:
             user_position = self.user_position_rank(member)
             users_position = self.users_position_rank()
@@ -284,7 +287,7 @@ class Xp(commands.Cog):
         )
 
         embed.add_field(
-            name=f'🎙Top {LIMIT} - Voz',
+            name=f'🎙Top {LIMIT} - Voz {mensal_msg}',
             value='\n'.join(rank_users_embed),
             inline=False,
         )
@@ -531,7 +534,6 @@ class Xp(commands.Cog):
         c = conn.cursor()
 
         user = self.get_user(member)
-        print(user)
 
         if not user:
             return None
@@ -558,8 +560,12 @@ class Xp(commands.Cog):
         '''
 
         user_position = c.execute(user_rank, (user[0],)).fetchone()
-
         c.close()
+
+        if not user_position:
+            return (
+                user[0], user[1], 0, 'Sem rank'
+            )
 
         return user_position
 
