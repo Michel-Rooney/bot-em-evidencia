@@ -31,8 +31,6 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
     for channel in source_channel:
         members.extend(channel.members)
 
-    print(f'{msg_time()} {members}')
-
     if (not source_channel) or (not target_channel):
         print(
             f'{msg_time()} MOVE_USER: SOURCE_CHANNEL',
@@ -41,6 +39,8 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
         return
 
     for member in members:
+        sleep(0.5)
+
         if member.bot:
             print(
                 '{msg_time()} MOVE_USER: Bot',
@@ -48,12 +48,8 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
             )
             continue
 
-        print(f'{msg_time()} Flag 01')
-
         if member.voice.self_video or member.voice.self_stream:
             continue
-
-        print(f'{msg_time()} Flag 02')
 
         try:
             message = (
@@ -74,6 +70,3 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
                 f'{msg_time()} MOVE_USER: ERRO AO ENVIAR',
                 f'MENSAGEM: {member.name}\n {e}'
             )
-
-        print(f'{msg_time()} Flag 03')
-        sleep(0.5)

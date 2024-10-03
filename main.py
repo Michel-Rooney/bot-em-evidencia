@@ -26,7 +26,19 @@ async def on_ready():
 @bot.command()
 async def sync(ctx: commands.Context):
     sincs = await bot.tree.sync()
-    await ctx.reply(f"{len(sincs)} comandos sicronizados")
+    await ctx.reply(f"{len(sincs)} comandos sicronizados", ephemeral=True)
+
+
+@bot.command()
+async def moverestart(ctx: commands.Context):
+    move_users.restart(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Move Users restartada", ephemeral=True)
+
+
+@bot.command()
+async def lockrestart(ctx: commands.Context):
+    move_users.restart(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Lock Chat restartada", ephemeral=True)
 
 
 async def load():
