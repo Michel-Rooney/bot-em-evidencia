@@ -1,5 +1,6 @@
 import asyncio
 import os
+from time import sleep
 
 import discord
 from decouple import config
@@ -31,13 +32,17 @@ async def sync(ctx: commands.Context):
 
 @bot.command()
 async def moverestart(ctx: commands.Context):
-    move_users.restart(bot, GUILD_ID)
+    move_users.stop()
+    sleep(3)
+    move_users.start(bot, GUILD_ID)
     await ctx.reply("Funcionalidade Move Users restartada", ephemeral=True)
 
 
 @bot.command()
 async def lockrestart(ctx: commands.Context):
-    move_users.restart(bot, GUILD_ID)
+    move_users.stop()
+    sleep(3)
+    move_users.start(bot, GUILD_ID)
     await ctx.reply("Funcionalidade Lock Chat restartada", ephemeral=True)
 
 

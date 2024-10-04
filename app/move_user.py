@@ -13,7 +13,7 @@ MOVE_USER_SOURCE_CHANNEL_ID = list(map(lambda id: int(id), config(
 MOVE_USER_TARGET_CHANNEL_ID = int(config('MOVE_USER_TARGET_CHANNEL_ID', 0))
 
 
-@ tasks.loop(minutes=MOVE_USER_LOOP_INTERVAL_MIN)
+@tasks.loop(minutes=MOVE_USER_LOOP_INTERVAL_MIN)
 async def move_users(bot: Bot, GUILD_ID: int) -> None:
     """
     Move os usuários da call, no qual não estão com a câmera
