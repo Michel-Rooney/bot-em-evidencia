@@ -43,7 +43,7 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
 
         if member.bot:
             print(
-                '{msg_time()} MOVE_USER: Bot',
+                f'{msg_time()} MOVE_USERS: Bot',
                 f'{member.name} ignorado no move_users.'
             )
             continue
@@ -62,7 +62,7 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
             await member.move_to(target_channel)
 
             print(
-                f'{msg_time()} MOVE_USER: Moved',
+                f'{msg_time()} MOVE_USERS: MOVED',
                 f'{member.name} to {target_channel.name}'
             )
         except Exception as e:
@@ -70,3 +70,5 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
                 f'{msg_time()} MOVE_USER: ERRO AO ENVIAR',
                 f'MENSAGEM: {member.name}\n {e}'
             )
+
+    print(f'{msg_time()} MOVE_USERS: Loop completo')
