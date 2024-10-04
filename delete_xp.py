@@ -33,30 +33,30 @@ def delete_today_study_and_adjust_xp(discord_id: int):
         WHERE id = (
             SELECT id FROM user WHERE discord_id = ?
         )
-    ''', (xp_today - 120, discord_id))
+    ''', (xp_today, discord_id))
 
     # Deletar os registros de estudo de hoje
-    # c.execute('''
-    #     DELETE FROM study
-    #     WHERE user = (
-    #         SELECT id FROM user WHERE discord_id = ?
-    #     )
-    #     AND DATE(created_at) = ?
-    # ''', (discord_id, day))
-
-    start_time = datetime.combine(
-        datetime.now() - timedelta(days=1), datetime.min.time()).replace(hour=12).strftime('%Y-%m-%d %H:%M:%S')
-    end_time = datetime.combine(
-        datetime.now() - timedelta(days=1), datetime.min.time()).replace(hour=15).strftime('%Y-%m-%d %H:%M:%S')
-
     c.execute('''
-        UPDATE study
-        SET xp = ?, updated_at = CURRENT_TIMESTAMP, start_time = ?, end_time = ?
+        DELETE FROM study
         WHERE user = (
             SELECT id FROM user WHERE discord_id = ?
         )
         AND DATE(created_at) = ?
-    ''', (120, start_time, end_time, discord_id, day))
+    ''', (discord_id, day))
+
+    # start_time = datetime.combine(
+    #     datetime.now() - timedelta(days=1), datetime.min.time()).replace(hour=12).strftime('%Y-%m-%d %H:%M:%S')
+    # end_time = datetime.combine(
+    #     datetime.now() - timedelta(days=1), datetime.min.time()).replace(hour=15).strftime('%Y-%m-%d %H:%M:%S')
+    #
+    # c.execute('''
+    #     UPDATE study
+    #     SET xp = ?, updated_at = CURRENT_TIMESTAMP, start_time = ?, end_time = ?
+    #     WHERE user = (
+    #         SELECT id FROM user WHERE discord_id = ?
+    #     )
+    #     AND DATE(created_at) = ?
+    # ''', (120, start_time, end_time, discord_id, day))
 
     conn.commit()
     conn.close()
