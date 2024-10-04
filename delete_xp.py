@@ -29,7 +29,7 @@ def delete_today_study_and_adjust_xp(discord_id: int):
     # Subtrair o XP ganho hoje do XP total do usuário
     c.execute('''
         UPDATE user
-        SET xp = xp, updated_at = CURRENT_TIMESTAMP
+        SET xp = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = (
             SELECT id FROM user WHERE discord_id = ?
         )
