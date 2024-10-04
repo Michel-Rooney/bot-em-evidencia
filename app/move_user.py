@@ -71,4 +71,4 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
                 f'MENSAGEM: {member.name}\n {e}'
             )
 
-    print(f'{msg_time()} MOVE_USERS: Loop completo')
+    print(f'{msg_time()} MOVE_USERS: Loop completo!')

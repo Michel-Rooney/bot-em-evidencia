@@ -118,4 +118,4 @@ async def lock_unlock_vip(bot: Bot, GUILD_ID: int) -> None:
     embed.set_footer(text="[MENSAGEM AUTOMÁTICA] pelo @Bot em Evidência#3468")
     await channel.send(embed=embed)
     await channel.set_permissions(vip_role, overwrite=overwrite)
-    print(f'{msg_time()} LOCK_CHAT: Loop completo')
+    print(f'{msg_time()} LOCK_CHAT: Loop completo!')
