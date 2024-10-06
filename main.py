@@ -6,7 +6,7 @@ import discord
 from decouple import config
 from discord.ext import commands
 
-from app import concursos_brasil, lock_unlock_vip, move_users
+from app import concursos_brasil, lock_unlock, move_users
 
 TOKEN = config('TOKEN', '')
 GUILD_ID = int(config('GUILD_ID', 0))
@@ -20,7 +20,7 @@ bot = commands.Bot(command_prefix='!b3e ', intents=intents)
 async def on_ready():
     concursos_brasil.start(bot, GUILD_ID)
     move_users.start(bot, GUILD_ID)
-    lock_unlock_vip.start(bot, GUILD_ID)
+    # lock_unlock.start(bot, GUILD_ID)
     print(f'Logged in as {bot.user}')
 
 
@@ -28,6 +28,17 @@ async def on_ready():
 async def sync(ctx: commands.Context):
     sincs = await bot.tree.sync()
     await ctx.reply(f"{len(sincs)} comandos sicronizados", ephemeral=True)
+
+
+"""
+    MOVE USERS
+"""
+
+
+@bot.command()
+async def movestart(ctx: commands.Context):
+    move_users.start(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Move Users startou", ephemeral=True)
 
 
 @bot.command()
@@ -39,11 +50,59 @@ async def moverestart(ctx: commands.Context):
 
 
 @bot.command()
-async def lockrestart(ctx: commands.Context):
+async def movestop(ctx: commands.Context):
     move_users.stop()
+    await ctx.reply("Funcionalidade Move Users stopou", ephemeral=True)
+
+
+"""
+    LOCK CHAT
+"""
+
+
+@bot.command()
+async def lockstart(ctx: commands.Context):
+    lock_unlock.start(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Lock Chat startou", ephemeral=True)
+
+
+@bot.command()
+async def lockrestart(ctx: commands.Context):
+    lock_unlock.stop()
     sleep(3)
-    move_users.start(bot, GUILD_ID)
+    lock_unlock.start(bot, GUILD_ID)
     await ctx.reply("Funcionalidade Lock Chat restartada", ephemeral=True)
+
+
+@bot.command()
+async def lockstop(ctx: commands.Context):
+    lock_unlock.stop()
+    await ctx.reply("Funcionalidade Lock Chat stopou", ephemeral=True)
+
+
+"""
+    CONCURSOS BRASIL
+"""
+
+
+@bot.command()
+async def concursosstart(ctx: commands.Context):
+    concursos_brasil.start(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Concursos Brasil startada", ephemeral=True)
+
+
+@bot.command()
+async def concursosrestart(ctx: commands.Context):
+    concursos_brasil.stop()
+    sleep(3)
+    concursos_brasil.start(bot, GUILD_ID)
+    await ctx.reply("Funcionalidade Concursos Brasil restartada", ephemeral=True)
+
+
+@bot.command()
+async def concursosstop(ctx: commands.Context):
+    concursos_brasil.stop()
+    await ctx.reply("Funcionalidade Concursos Brasil stopada", ephemeral=True)
 
 
 async def load():

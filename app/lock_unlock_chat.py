@@ -74,7 +74,7 @@ SLEEP_MOTIVATIONAL_QUOTES: list[str] = [
 
 
 @tasks.loop(time=[TIME_TO_OPEN, TIME_TO_CLOSE])
-async def lock_unlock_vip(bot: Bot, GUILD_ID: int) -> None:
+async def lock_unlock(bot: Bot, GUILD_ID: int) -> None:
     """
     Libera e bloqueia o chat geral
     """
