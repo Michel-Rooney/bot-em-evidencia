@@ -65,6 +65,13 @@ class Xp(commands.Cog):
         Monitora as ações dos usuários nas calls
         """
 
+        if member.bot:
+            print(
+                f'{msg_time()} XP: Bot',
+                f'{member.name} ignorado no move_users.'
+            )
+            return
+
         conn = sqlite3.connect(DB)
         c = conn.cursor()
 
@@ -95,6 +102,17 @@ class Xp(commands.Cog):
             end_time_converted = self.convert_time(self.time_now())
             total_time = end_time_converted - start_time
             xp = self.calc_xp(member, total_time)
+
+            if total_time.total_seconds() > 57600:
+                print(
+                    f'{msg_time()} XP: {member.name} ',
+                    'mais de 16h em call, não contou XP.'
+                )
+                c.execute('''
+                DELETE FROM study WHERE id = ?
+                ''', (study[0]))
+            conn.commit()
+            return
 
             c.execute('''
                 UPDATE study
@@ -139,6 +157,17 @@ class Xp(commands.Cog):
                     end_time_converted = self.convert_time(self.time_now())
                     total_time = end_time_converted - start_time
                     xp = self.calc_xp(member, total_time)
+
+                    if total_time.total_seconds() > 57600:
+                        print(
+                            f'{msg_time()} XP: {member.name} ',
+                            'mais de 16h em call, não contou XP.'
+                        )
+                        c.execute('''
+                        DELETE FROM study WHERE id = ?
+                        ''', (study[0]))
+                    conn.commit()
+                    return
 
                     c.execute('''
                         UPDATE study
