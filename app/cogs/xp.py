@@ -103,16 +103,16 @@ class Xp(commands.Cog):
             total_time = end_time_converted - start_time
             xp = self.calc_xp(member, total_time)
 
-            if total_time.total_seconds() > 57600:
-                print(
-                    f'{msg_time()} XP: {member.name} ',
-                    'mais de 16h em call, não contou XP.'
-                )
-                c.execute('''
-                DELETE FROM study WHERE id = ?
-                ''', (study[0]))
-            conn.commit()
-            return
+            # if total_time.total_seconds() > 57600:
+            #     print(
+            #         f'{msg_time()} XP: {member.name} ',
+            #         'mais de 16h em call, não contou XP.'
+            #     )
+            #     c.execute('''
+            #     DELETE FROM study WHERE id = ?
+            #     ''', (study[0]))
+            # conn.commit()
+            # return
 
             c.execute('''
                 UPDATE study
@@ -158,16 +158,16 @@ class Xp(commands.Cog):
                     total_time = end_time_converted - start_time
                     xp = self.calc_xp(member, total_time)
 
-                    if total_time.total_seconds() > 57600:
-                        print(
-                            f'{msg_time()} XP: {member.name} ',
-                            'mais de 16h em call, não contou XP.'
-                        )
-                        c.execute('''
-                        DELETE FROM study WHERE id = ?
-                        ''', (study[0]))
-                    conn.commit()
-                    return
+                    # if total_time.total_seconds() > 57600:
+                    #     print(
+                    #         f'{msg_time()} XP: {member.name} ',
+                    #         'mais de 16h em call, não contou XP.'
+                    #     )
+                    #     c.execute('''
+                    #     DELETE FROM study WHERE id = ?
+                    #     ''', (study[0]))
+                    # conn.commit()
+                    # return
 
                     c.execute('''
                         UPDATE study
