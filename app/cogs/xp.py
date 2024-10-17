@@ -34,7 +34,7 @@ class Xp(commands.Cog):
         """
 
         self.migrations()
-        print(f'Cog - {__name__} is online')
+        print(f'Cog - {__name__} is online!')
 
     @app_commands.command(description='ping')
     @app_commands.describe(member="Membro")
@@ -111,8 +111,8 @@ class Xp(commands.Cog):
             #     c.execute('''
             #     DELETE FROM study WHERE id = ?
             #     ''', (study[0]))
-            # conn.commit()
-            # return
+            #     conn.commit()
+            #     return
 
             c.execute('''
                 UPDATE study
@@ -166,8 +166,8 @@ class Xp(commands.Cog):
                     #     c.execute('''
                     #     DELETE FROM study WHERE id = ?
                     #     ''', (study[0]))
-                    # conn.commit()
-                    # return
+                    #     conn.commit()
+                    #     return
 
                     c.execute('''
                         UPDATE study
@@ -241,7 +241,7 @@ class Xp(commands.Cog):
             await interact.response.send_message(message, ephemeral=True)
             return
 
-        buffer = self.criar_grafico(member, user, offset.value)
+        buffer = self.criar_grafico(member, user, target_member, offset.value)
         embed, file = self.criar_embed(
             member, target_member, buffer, user, offset.value)
 
@@ -708,7 +708,10 @@ class Xp(commands.Cog):
         conn.close()
         return categorias, valores
 
-    def criar_grafico(self, member, user, offset='week'):
+    def criar_grafico(
+        self, member: discord.Member, user,
+        target_member: discord.Member, offset='week'
+    ):
         today = datetime.now()
 
         match offset:
@@ -724,7 +727,9 @@ class Xp(commands.Cog):
         bar = plt.bar(categorias, valores)
         plt.xlabel('Dia')
         plt.ylabel('Horas')
-        plt.title(f'Gráfico de Horas Estudadas {today.year} - {member.name}')
+        plt.title(
+            f'Gráfico de Horas Estudadas {today.year} - {target_member.name}'
+        )
 
         plt.xticks(rotation=45, fontsize=6)
         plt.bar_label(bar)
