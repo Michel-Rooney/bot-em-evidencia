@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from time import sleep
 
@@ -14,6 +15,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!b3e ', intents=intents)
+logging.basicConfig(level=logging.INFO)
 
 
 @bot.event
@@ -22,6 +24,7 @@ async def on_ready():
     move_users.start(bot, GUILD_ID)
     # lock_unlock.start(bot, GUILD_ID)
     print(f'Logged in as {bot.user}')
+    logging.info(f'Logged in as {bot.user}')
 
 
 @bot.command()

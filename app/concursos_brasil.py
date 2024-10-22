@@ -76,4 +76,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
 
     role_noticias = guild.get_role(CON_BR_ROLE_NOTICIA_ID)
 
-    await channel.send(role_noticias.mention, embed=embed)
+    if role_noticias:
+        return await channel.send(role_noticias.mention, embed=embed)
+
+    return await channel.send(embed=embed)
