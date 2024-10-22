@@ -17,7 +17,7 @@ CON_BR_LOOP_INTERVAL_MIN = int(config('CON_BR_LOOP_INTERVAL_MIN', 10))
 tempo_ultima_noticia = ''
 
 
-@tasks.loop(minutes=CON_BR_LOOP_INTERVAL_MIN)
+@tasks.loop(seconds=15)
 async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     """
     Envia as notícias do site Concursos Brasil
@@ -47,8 +47,8 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             tempo, "%d/%m/%Y às %Hh%M"
         )
 
-        if tempo_article < tempo_ultima_noticia:
-            continue
+        # if tempo_article < tempo_ultima_noticia:
+        #     continue
 
         description.append(
             f"## [{localidade} - {titulo}]({link})\n{tempo} por {author}"

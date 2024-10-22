@@ -1,22 +1,22 @@
 from datetime import datetime
 
+from decouple import config
 from peewee import (BigIntegerField, DateTimeField, ForeignKeyField, Model,
                     PostgresqlDatabase)
 
+DB_NAME = config('DB_NAME', '')
+DB_USER = config('DB_USER', '')
+DB_PASSWORD = config('DB_PASSWORD', '')
+DB_HOST = config('DB_HOST', '')
+DB_PORT = int(config('DB_PORT', ''))
+
 db = PostgresqlDatabase(
-    'defaultdb',
-    user='avnadmin',
-    password='AVNS_Re_cV99CETaj5e3U5S5',
-    host='bot-em-evidencia-michelrooney16.f.aivencloud.com',
-    port=24628,
+    DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT,
 )
-# db = PostgresqlDatabase(
-#     'postgresql_0ok4',
-#     user='postgresql_0ok4_user',
-#     password='zOvaNY3BpJ0YONAv0qZAcwtqnn8PtiDj',
-#     host='dpg-csbeohaj1k6c73eehd80-a.oregon-postgres.render.com',
-#     port=5432,
-# )
 
 
 class User(Model):

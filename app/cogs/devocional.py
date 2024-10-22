@@ -12,6 +12,11 @@ from app.utils import msg_log
 DEVOCIONAL_URL = config('DEVOCIONAL_URL', '')
 DEVOCIONAL_CHANNEL_ID = int(config('DEVOCIONAL_CHANNEL_ID', 0))
 GUILD_ID = int(config('GUILD_ID', 0))
+DEVOCIONAL_ROLE_ID = int(config('DEVOCIONAL_ROLE_ID', 0))
+
+DEVOCIONAL_H = int(config('DEVOCIONAL_H', 20))
+DEVOCIONAL_M = int(config('DEVOCIONAL_M', 00))
+DEVOCIONAL_SEND = datetime.time(hour=DEVOCIONAL_H, minute=DEVOCIONAL_M)
 
 
 class Devocional(commands.Cog):
@@ -27,10 +32,11 @@ class Devocional(commands.Cog):
         self.devocional.start()
         msg_log(f'Cog - {__name__} is online!')
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(time=[DEVOCIONAL_SEND])
     async def devocional(self) -> None:
         guild = self.bot.get_guild(GUILD_ID)
-        channel = guild.get_channel(DEVOCIONAL_CHANNEL_ID)
+        role = guild.get_role(DEVOCIONAL_ROLE_ID)
+        channel = self.bot.get_channel(DEVOCIONAL_CHANNEL_ID)
         scraped = self.web_scraping()
 
         if not scraped:
@@ -38,7 +44,11 @@ class Devocional(commands.Cog):
             return
 
         embed = self.embed(scraped)
-        await channel.send(embed=embed)
+
+        if role:
+            return await channel.send(role.mention, embed=embed)
+
+        return await channel.send(embed=embed)
 
     def web_scraping(self) -> dict:
         response = requests.get(DEVOCIONAL_URL)
