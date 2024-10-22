@@ -4,7 +4,7 @@ from decouple import config
 from discord.ext import tasks
 from discord.ext.commands import Bot
 
-from app.utils import msg_time
+from app.utils import log_msg
 
 MOVE_USER_LOOP_INTERVAL_MIN = int(config('MOVE_USER_LOOP_INTERVAL_MIN', 2))
 MOVE_USER_SOURCE_CHANNEL_ID = list(map(lambda id: int(id), config(
@@ -32,20 +32,14 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
         members.extend(channel.members)
 
     if (not source_channel) or (not target_channel):
-        print(
-            f'{msg_time()} MOVE_USER: SOURCE_CHANNEL',
-            'OU TARGET_CHANNEL INVÁLIDO.'
-        )
+        log_msg('MOVE_USER: SOURCE_CHANNEL OU TARGET_CHANNEL INVÁLIDO.')
         return
 
     for member in members:
         sleep(0.5)
 
         if member.bot:
-            print(
-                f'{msg_time()} MOVE_USERS: Bot',
-                f'{member.name} ignorado no move_users.'
-            )
+            log_msg(f'MOVE_USERS: Bot {member.name} ignorado no move_users.')
             continue
 
         if member.voice.self_video or member.voice.self_stream:
@@ -61,14 +55,12 @@ async def move_users(bot: Bot, GUILD_ID: int) -> None:
             await member.send(message)
             await member.move_to(target_channel)
 
-            print(
-                f'{msg_time()} MOVE_USERS: MOVED',
+            msg = (
+                'MOVE_USERS: MOVED ',
                 f'{member.name} to {target_channel.name}'
             )
+            log_msg(msg)
         except Exception as e:
-            print(
-                f'{msg_time()} MOVE_USER: ERRO AO ENVIAR',
-                f'MENSAGEM: {member.name}\n {e}'
-            )
+            log_msg(f'MOVE_USER: ERRO AO ENVIAR MENSAGEM: {member.name}\n {e}')
 
-    print(f'{msg_time()} MOVE_USERS: Loop completo!')
+    log_msg('MOVE_USERS: Loop completo!')

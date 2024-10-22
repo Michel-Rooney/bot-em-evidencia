@@ -11,7 +11,7 @@ from discord import VoiceState, app_commands
 from discord.ext import commands
 from discord.ext.commands import Bot
 
-from app.utils import msg_time
+from app.utils import log_msg
 
 DB = config('DB', '')
 ALLOWED_CHANNELS = list(
@@ -34,7 +34,7 @@ class Xp(commands.Cog):
         """
 
         self.migrations()
-        print(f'Cog - {__name__} is online!')
+        log_msg(f'Cog - {__name__} is online!')
 
     @app_commands.command(description='ping')
     @app_commands.describe(member="Membro")
@@ -66,10 +66,7 @@ class Xp(commands.Cog):
         """
 
         if member.bot:
-            print(
-                f'{msg_time()} XP: Bot',
-                f'{member.name} ignorado no move_users.'
-            )
+            log_msg(f'XP: Bot {member.name} ignorado no move_users.')
             return
 
         conn = sqlite3.connect(DB)
@@ -102,17 +99,6 @@ class Xp(commands.Cog):
             end_time_converted = self.convert_time(self.time_now())
             total_time = end_time_converted - start_time
             xp = self.calc_xp(member, total_time)
-
-            # if total_time.total_seconds() > 57600:
-            #     print(
-            #         f'{msg_time()} XP: {member.name} ',
-            #         'mais de 16h em call, não contou XP.'
-            #     )
-            #     c.execute('''
-            #     DELETE FROM study WHERE id = ?
-            #     ''', (study[0]))
-            #     conn.commit()
-            #     return
 
             c.execute('''
                 UPDATE study
@@ -158,17 +144,6 @@ class Xp(commands.Cog):
                     total_time = end_time_converted - start_time
                     xp = self.calc_xp(member, total_time)
 
-                    # if total_time.total_seconds() > 57600:
-                    #     print(
-                    #         f'{msg_time()} XP: {member.name} ',
-                    #         'mais de 16h em call, não contou XP.'
-                    #     )
-                    #     c.execute('''
-                    #     DELETE FROM study WHERE id = ?
-                    #     ''', (study[0]))
-                    #     conn.commit()
-                    #     return
-
                     c.execute('''
                         UPDATE study
                         SET end_time = ?,
@@ -185,7 +160,7 @@ class Xp(commands.Cog):
 
                     conn.commit()
                 except Exception as err:
-                    print(f'{msg_time()} UPDATE BEFORE IN ALLOWED_CHANNELS - {err}')
+                    log_msg(f'UPDATE BEFORE IN ALLOWED_CHANNELS - {err}')
 
                 if after_id in ALLOWED_CHANNELS:
                     user = self.get_user(member)

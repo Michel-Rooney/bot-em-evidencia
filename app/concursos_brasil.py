@@ -7,7 +7,7 @@ from decouple import config
 from discord.ext import tasks
 from discord.ext.commands import Bot
 
-from app.utils import msg_time
+from app.utils import log_msg
 
 CON_BR_CHANNEL_ID = int(config('CON_BR_CHANNEL_ID', 0))
 CON_BR_ROLE_NOTICIA_ID = int(config('CON_BR_ROLE_NOTICIA_ID', 0))
@@ -59,7 +59,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     time = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     if len(description) <= 0:
-        print(f'{msg_time()} Sem notícias recentes.')
+        log_msg('Sem notícias recentes.')
         return
 
     embed = discord.Embed(

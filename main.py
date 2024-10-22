@@ -23,7 +23,6 @@ async def on_ready():
     concursos_brasil.start(bot, GUILD_ID)
     move_users.start(bot, GUILD_ID)
     # lock_unlock.start(bot, GUILD_ID)
-    print(f'Logged in as {bot.user}')
     logging.info(f'Logged in as {bot.user}')
 
 
