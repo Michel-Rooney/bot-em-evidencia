@@ -143,13 +143,13 @@ class Xp(commands.Cog):
                 user_mention = user_discord.mention
 
             rank_users_embed.append(
-                f'#{user['position']} | {user_mention} - XP: `{user['xp']}`'
+                f'#{user["position"]} | {user_mention} - XP: `{user["xp"]}`'
             )
 
         user_rank_discord = interact.guild.get_member(user_position['discord'])
         message = (
-            f'**#{user_position['position']} | {user_rank_discord.mention} '
-            f'- XP: `{user_position['xp']}`**'
+            f'**#{user_position["position"]} | {user_rank_discord.mention} '
+            f'- XP: `{user_position["xp"]}`**'
         )
         rank_users_embed.append(message)
 
@@ -350,7 +350,7 @@ class Xp(commands.Cog):
 
         embed.add_field(
             name='Posição no rank',
-            value=f'#{user_position['position']}',
+            value=f'#{user_position["position"]}',
             inline=True
         )
 
