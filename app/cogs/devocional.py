@@ -7,7 +7,7 @@ from decouple import config
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot
 
-from app.utils import log_msg
+from app.utils import msg_log
 
 DEVOCIONAL_URL = config('DEVOCIONAL_URL', '')
 DEVOCIONAL_CHANNEL_ID = int(config('DEVOCIONAL_CHANNEL_ID', 0))
@@ -24,8 +24,8 @@ class Devocional(commands.Cog):
         Faz os primeios ajustes
         """
 
-        # self.devocional.start()
-        log_msg(f'Cog - {__name__} is online!')
+        self.devocional.start()
+        msg_log(f'Cog - {__name__} is online!')
 
     @tasks.loop(seconds=10)
     async def devocional(self) -> None:
@@ -91,5 +91,4 @@ class Devocional(commands.Cog):
 
 
 async def setup(bot):
-    ...
-    # await bot.add_cog(Devocional(bot))
+    await bot.add_cog(Devocional(bot))

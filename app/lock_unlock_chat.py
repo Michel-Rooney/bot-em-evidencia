@@ -6,7 +6,7 @@ from decouple import config
 from discord.ext import tasks
 from discord.ext.commands import Bot
 
-from app.utils import log_msg
+from app.utils import msg_log
 
 LOCK_CHANNEL_ID = int(config('LOCK_CHANNEL_ID', 0))
 UTC = int(config('UTC', 1))
@@ -118,4 +118,4 @@ async def lock_unlock(bot: Bot, GUILD_ID: int) -> None:
     embed.set_footer(text="[MENSAGEM AUTOMÁTICA] pelo @Bot em Evidência#3468")
     await channel.send(embed=embed)
     await channel.set_permissions(vip_role, overwrite=overwrite)
-    log_msg('LOCK_CHAT: Loop completo!')
+    msg_log('LOCK_CHAT: Loop completo!')

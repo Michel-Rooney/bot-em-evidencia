@@ -10,5 +10,5 @@ def msg_time() -> datetime:
     return f'[{datetime.now().strftime("%H-%m-%d %H:%M")}]'
 
 
-def log_msg(msg: str = ''):
+def msg_log(msg: str = ''):
     logging.info(f'{msg_time()} {msg}')
