@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 
@@ -7,3 +8,7 @@ def msg_time() -> datetime:
     """
 
     return f'[{datetime.now().strftime("%H-%m-%d %H:%M")}]'
+
+
+def msg_log(msg: str = ''):
+    logging.info(f'{msg_time()} {msg}')
