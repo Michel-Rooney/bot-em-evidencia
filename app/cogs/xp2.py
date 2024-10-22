@@ -430,6 +430,26 @@ class Xp2(commands.Cog):
             )
         )
 
+    def get_ranked_users_month(self):
+        ranked_users = (
+            User.select(
+                User.id.alias('id'),
+                User.discord.alias('discord'),
+                fn.SUM(Study.xp).alias('xp'),
+                fn.RANK().over(
+                    order_by=[fn.SUM(Study.xp).desc()]).alias('position')
+            ).join(
+                Study, on=(User.id == Study.user)
+            ).where(
+                fn.TO_CHAR(Study.created_at,
+                           'YYYY-MM') == fn.TO_CHAR(fn.NOW(), 'YYYY-MM')
+            ).group_by(
+                User.id, User.discord
+            ).alias('ranked_users')
+        )
+
+        return ranked_users
+
     def user_position_rank(self, member):
         user = self.get_user(member)
 
@@ -443,23 +463,22 @@ class Xp2(commands.Cog):
 
     def user_position_rank_month(self, member):
         user = self.get_user(member)
-        today = datetime.now()
 
         if not user:
             return None
 
-        # ranked_user = self.get_ranked_users().where(
-        #     # (User.created_at == datetime.now().strftime('%Y-%m')) &
-        #     (datetime.strftime(User.created_at, '%Y-%m')
-        #         == datetime.now().strftime('%Y-%m'))
-        #     (User.id == user.id)
-        # ).dicts()
+        ranked_users = self.get_ranked_users_month()
 
-        ranked_user = self.get_ranked_users().where(
-            fn.strftime('%Y', User.created_at) == str(today.year),
-            fn.strftime('%m', User.created_at) == str(today.month),
-            User.id == user.id
-        ).dicts()
+        ranked_user = User.select(
+            ranked_users.c.id.alias('id'),
+            ranked_users.c.discord.alias('discord'),
+            ranked_users.c.xp.alias('xp'),
+            ranked_users.c.position.alias('position')
+        ).from_(
+            ranked_users
+        ).where(
+            ranked_users.c.id == user.id
+        ).dicts().first()
 
         return ranked_user
 
@@ -468,21 +487,20 @@ class Xp2(commands.Cog):
         return users_position
 
     def users_position_rank_month(self):
-        today = datetime.now()
-        # users_position = self.get_ranked_users(
-        # ).where(
-        #     (datetime.strftime('%Y-%m', str(User.created_at))
-        #      == datetime.now().strftime('%Y-%m'))
-        # ).limit(LIMIT).dicts()
-        #
-        # return users_position
+        ranked_users = self.get_ranked_users_month()
 
-        ranked_users = self.get_ranked_users().where(
-            fn.strftime('%Y', Study.created_at) == str(today.year),
-            fn.strftime('%m', Study.created_at) == str(today.month)
-        ).limit(LIMIT).dicts()
+        ranked_users_limit = User.select(
+            ranked_users.c.id.alias('id'),
+            ranked_users.c.discord.alias('discord'),
+            ranked_users.c.xp.alias('xp'),
+            ranked_users.c.position.alias('position')
+        ).from_(
+            ranked_users
+        ).limit(
+            LIMIT
+        ).dicts()
 
-        return ranked_users
+        return ranked_users_limit
 
 
 async def setup(bot):
