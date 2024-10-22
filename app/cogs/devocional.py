@@ -21,7 +21,7 @@ TZ = timezone(OFFSET)
 
 DEVOCIONAL_H = int(config('DEVOCIONAL_H', 20))
 DEVOCIONAL_M = int(config('DEVOCIONAL_M', 00))
-DEVOCIONAL_SEND = time(
+DEVOCIONAL_SEND_TIME = time(
     hour=DEVOCIONAL_H, minute=DEVOCIONAL_M, tzinfo=TZ
 )
 
@@ -39,7 +39,7 @@ class Devocional(commands.Cog):
         self.devocional.start()
         msg_log(f'Cog - {__name__} is online!')
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(time=[DEVOCIONAL_SEND_TIME])
     async def devocional(self) -> None:
         guild = self.bot.get_guild(GUILD_ID)
         role = guild.get_role(DEVOCIONAL_ROLE_ID)
