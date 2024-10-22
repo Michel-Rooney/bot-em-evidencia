@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time, timedelta, timezone
 
 import discord
 import requests
@@ -14,9 +14,16 @@ DEVOCIONAL_CHANNEL_ID = int(config('DEVOCIONAL_CHANNEL_ID', 0))
 GUILD_ID = int(config('GUILD_ID', 0))
 DEVOCIONAL_ROLE_ID = int(config('DEVOCIONAL_ROLE_ID', 0))
 
+
+UTC = int(config('UTC', 1))
+OFFSET = timedelta(hours=UTC)
+TZ = timezone(OFFSET)
+
 DEVOCIONAL_H = int(config('DEVOCIONAL_H', 20))
 DEVOCIONAL_M = int(config('DEVOCIONAL_M', 00))
-DEVOCIONAL_SEND = datetime.time(hour=DEVOCIONAL_H, minute=DEVOCIONAL_M)
+DEVOCIONAL_SEND = time(
+    hour=DEVOCIONAL_H, minute=DEVOCIONAL_M, tzinfo=TZ
+)
 
 
 class Devocional(commands.Cog):
@@ -32,7 +39,7 @@ class Devocional(commands.Cog):
         self.devocional.start()
         msg_log(f'Cog - {__name__} is online!')
 
-    @tasks.loop(time=[DEVOCIONAL_SEND])
+    @tasks.loop(seconds=30)
     async def devocional(self) -> None:
         guild = self.bot.get_guild(GUILD_ID)
         role = guild.get_role(DEVOCIONAL_ROLE_ID)

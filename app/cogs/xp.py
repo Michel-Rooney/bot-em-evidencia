@@ -313,8 +313,7 @@ class Xp(commands.Cog):
                 values.append(0)
                 continue
 
-            # TODO: 3600
-            valor = round(total_time_sum, 2)
+            valor = round(total_time_sum / 3600, 2)
             values.append(valor)
 
         return categories, values
