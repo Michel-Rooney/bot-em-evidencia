@@ -49,7 +49,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
 
         tempo_article = datetime.strptime(
             tempo, "%d/%m/%Y às %Hh%M"
-        )
+        ).replace(tzinfo=TZ)
 
         if tempo_article < tempo_ultima_noticia:
             continue
