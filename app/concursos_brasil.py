@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import discord
 import requests
@@ -13,6 +13,10 @@ CON_BR_CHANNEL_ID = int(config('CON_BR_CHANNEL_ID', 0))
 CON_BR_ROLE_NOTICIA_ID = int(config('CON_BR_ROLE_NOTICIA_ID', 0))
 CON_BR_URL = config('CON_BR_URL', '')
 CON_BR_LOOP_INTERVAL_MIN = int(config('CON_BR_LOOP_INTERVAL_MIN', 10))
+
+UTC = int(config('UTC', -3))
+OFFSET = timedelta(hours=UTC)
+TZ = timezone(OFFSET)
 
 tempo_ultima_noticia = ''
 
@@ -34,7 +38,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     description = []
 
     if not tempo_ultima_noticia:
-        tempo_ultima_noticia = datetime.now()
+        tempo_ultima_noticia = datetime.now(TZ)
 
     for article in concursos_recentes.children:
         link = article.select_one('a')['href']
@@ -54,9 +58,9 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             f"## [{localidade} - {titulo}]({link})\n{tempo} por {author}"
         )
 
-    tempo_ultima_noticia = datetime.now()
+    tempo_ultima_noticia = datetime.now(TZ)
 
-    time = datetime.now().strftime('%Y-%m-%d %H:%M')
+    time = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
 
     if len(description) <= 0:
         msg_log('Sem notícias recentes.')

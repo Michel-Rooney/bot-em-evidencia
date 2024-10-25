@@ -15,7 +15,7 @@ GUILD_ID = int(config('GUILD_ID', 0))
 DEVOCIONAL_ROLE_ID = int(config('DEVOCIONAL_ROLE_ID', 0))
 
 
-UTC = int(config('UTC', 1))
+UTC = int(config('UTC', -3))
 OFFSET = timedelta(hours=UTC)
 TZ = timezone(OFFSET)
 
