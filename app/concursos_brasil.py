@@ -40,7 +40,9 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     if not tempo_ultima_noticia:
         tempo_ultima_noticia = datetime.now(TZ)
 
-    for article in concursos_recentes.children:
+    articles = reversed(list(concursos_recentes.children))
+
+    for article in articles:
         link = article.select_one('a')['href']
         localidade = article.select_one('.sigla').text.strip()
         titulo = article.select_one('.post-title').text.strip()
@@ -58,7 +60,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             f"## [{localidade} - {titulo}]({link})\n{tempo} por {author}"
         )
 
-    tempo_ultima_noticia = datetime.now(TZ)
+    tempo_ultima_noticia = tempo_article
     time = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
 
     if len(description) <= 0:
