@@ -21,7 +21,7 @@ TZ = timezone(OFFSET)
 tempo_ultima_noticia = ''
 
 
-@tasks.loop(minutes=CON_BR_LOOP_INTERVAL_MIN)
+@tasks.loop(seconds=12)
 async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     """
     Envia as notícias do site Concursos Brasil
@@ -36,6 +36,8 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
 
     concursos_recentes = soup.select_one('.recentes-container')
     description = []
+
+    print(f'Antigo tempo noticia {tempo_ultima_noticia}')
 
     if not tempo_ultima_noticia:
         tempo_ultima_noticia = datetime.now(TZ)
@@ -61,8 +63,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             f"## [{localidade} - {titulo}]({link})\n{tempo} por {author}"
         )
 
-    tempo_ultima_noticia = datetime.now(TZ)
-
+    tempo_ultima_noticia = tempo_article
     time = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
 
     if len(description) <= 0:
