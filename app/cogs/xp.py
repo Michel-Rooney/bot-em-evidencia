@@ -426,8 +426,10 @@ class Xp(commands.Cog):
                 User.id,
                 User.discord,
                 User.xp,
-                fn.RANK().over(order_by=[User.xp.desc()]).alias('position')
-            )
+                fn.RANK().over(
+                    order_by=[User.xp.desc(), User.id]
+                ).alias('position')
+            ).alias('ranked_users')
         )
 
     def get_ranked_users_month(self):
@@ -437,7 +439,8 @@ class Xp(commands.Cog):
                 User.discord.alias('discord'),
                 fn.SUM(Study.xp).alias('xp'),
                 fn.RANK().over(
-                    order_by=[fn.SUM(Study.xp).desc()]).alias('position')
+                    order_by=[fn.SUM(Study.xp).desc(), User.id]
+                ).alias('position')
             ).join(
                 Study, on=(User.id == Study.user)
             ).where(
@@ -456,9 +459,19 @@ class Xp(commands.Cog):
         if not user:
             return None
 
-        ranked_user = self.get_ranked_users().where(
-            User.id == user.id
+        ranked_users = self.get_ranked_users()
+
+        ranked_user = User.select(
+            ranked_users.c.id.alias('id'),
+            ranked_users.c.discord.alias('discord'),
+            ranked_users.c.xp.alias('xp'),
+            ranked_users.c.position.alias('position')
+        ).from_(
+            ranked_users
+        ).where(
+            ranked_users.c.id == user.id
         ).dicts().first()
+
         return ranked_user
 
     def user_position_rank_month(self, member):
