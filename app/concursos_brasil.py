@@ -51,6 +51,9 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             tempo, "%d/%m/%Y às %Hh%M"
         ).replace(tzinfo=TZ)
 
+        msg_log(f'Tempo Artigo: {tempo_article}')
+        msg_log(f'Tempo Última Notícias: {tempo_ultima_noticia}')
+
         if tempo_article < tempo_ultima_noticia:
             continue
 
