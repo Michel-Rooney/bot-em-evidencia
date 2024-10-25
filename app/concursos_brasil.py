@@ -58,7 +58,7 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
             f"## [{localidade} - {titulo}]({link})\n{tempo} por {author}"
         )
 
-    tempo_ultima_noticia = tempo_article
+    tempo_ultima_noticia = datetime.now(TZ)
     time = datetime.now(TZ).strftime('%Y-%m-%d %H:%M')
 
     if len(description) <= 0:
