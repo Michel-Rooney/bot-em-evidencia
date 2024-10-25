@@ -163,7 +163,9 @@ class Xp(commands.Cog):
             inline=False,
         )
 
-        await interact.response.send_message(member.mention, embed=embed)
+        await interact.response.send_message(
+            interact.user.mention, embed=embed
+        )
 
     @commands.Cog.listener()
     async def on_voice_state_update(
