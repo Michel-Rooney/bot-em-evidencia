@@ -61,10 +61,14 @@ class Devocional(commands.Cog):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         titulo_diario = soup.select_one(
-            'div.page_hero__zOHEm:nth-child(1) > div:nth-child(2) > h2:nth-child(2)'
+            'div.block_root__NKXYU:nth-child(1) > h2:nth-child(3)'
         )
-        mensagem_diaria = soup.select_one('.FragmentView_text__g6Uq2').children
-        link_diario = soup.select_one('.FragmentView_refLink__mssLX')
+        mensagem_diaria = soup.select_one(
+            '.FragmentView_text__g6Uq2'
+        ).children
+        link_diario = soup.select_one(
+            '.FragmentView_actionLink__l6efd > a:nth-child(1)'
+        )
 
         scraped = {
             'titulo': titulo_diario,
