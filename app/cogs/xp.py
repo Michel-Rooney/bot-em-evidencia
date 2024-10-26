@@ -1,5 +1,5 @@
 import io
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import discord
@@ -20,6 +20,10 @@ GUILD_ID = int(config('GUILD_ID', 0))
 TIME_XP = int(config('TIME_XP', 60))
 
 LIMIT = int(config('LIMIT', 10))
+
+UTC = int(config('UTC', -3))
+OFFSET = timedelta(hours=UTC)
+TZ = timezone(OFFSET)
 
 
 class Xp(commands.Cog):
@@ -246,7 +250,7 @@ class Xp(commands.Cog):
 
     def update_study(self, member, user, study):
         start_time = study.start_time
-        end_time = datetime.now()
+        end_time = datetime.now(TZ)
         total_time = end_time - start_time
         xp = self.calc_xp(member, total_time)
 
@@ -262,7 +266,7 @@ class Xp(commands.Cog):
         self, member: discord.Member, user,
         target_member: discord.Member, offset='week'
     ):
-        today = datetime.now()
+        today = datetime.now(TZ)
 
         match offset:
             case 'day':
@@ -293,7 +297,7 @@ class Xp(commands.Cog):
         return buffer
 
     def graphic_data(self, user, days=6):
-        today = datetime.now()
+        today = datetime.now(TZ)
         categories = []
         values = []
 
@@ -363,7 +367,7 @@ class Xp(commands.Cog):
         )
 
         embed.set_footer(
-            text=f'{datetime.now().strftime("%d %b %Y %H:%M:%S")}')
+            text=f'{datetime.now(TZ).strftime("%d %b %Y %H:%M:%S")}')
 
         buffer.seek(0)
         file = discord.File(fp=buffer, filename='grafico.png')
@@ -447,7 +451,7 @@ class Xp(commands.Cog):
                 Study, on=(User.id == Study.user)
             ).where(
                 fn.TO_CHAR(Study.created_at,
-                           'YYYY-MM') == fn.TO_CHAR(fn.NOW(), 'YYYY-MM')
+                           'YYYY-MM') == fn.TO_CHAR(fn.NOW(TZ), 'YYYY-MM')
             ).group_by(
                 User.id, User.discord
             ).alias('ranked_users')

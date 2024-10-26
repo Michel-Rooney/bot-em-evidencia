@@ -14,7 +14,6 @@ DEVOCIONAL_CHANNEL_ID = int(config('DEVOCIONAL_CHANNEL_ID', 0))
 GUILD_ID = int(config('GUILD_ID', 0))
 DEVOCIONAL_ROLE_ID = int(config('DEVOCIONAL_ROLE_ID', 0))
 
-
 UTC = int(config('UTC', -3))
 OFFSET = timedelta(hours=UTC)
 TZ = timezone(OFFSET)
@@ -80,7 +79,7 @@ class Devocional(commands.Cog):
         link_texto = link.text.strip()
         link_url = link['href']
         mensagem = []
-        data_atual = datetime.now().strftime('%d/%m/%Y')
+        data_atual = datetime.now(TZ).strftime('%d/%m/%Y')
 
         for msg in scraped['mensagem']:
             mensagem.append(f'{msg.text.strip()}')
