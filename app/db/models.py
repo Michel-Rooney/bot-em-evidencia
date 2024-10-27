@@ -28,30 +28,30 @@ class User(Model):
     discord = BigIntegerField(unique=True)
     guild = BigIntegerField()
     xp = BigIntegerField(default=0)
-    created_at = DateTimeField(default=datetime.now(TZ))
-    updated_at = DateTimeField(default=datetime.now(TZ))
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
 
     class Meta:
         database = db
 
     def save(self, *args, **kwargs):
-        self.updated_at = datetime.now()
+        self.updated_at = datetime.utcnow()
         return super().save(*args, **kwargs)
 
 
 class Study(Model):
     user = ForeignKeyField(User, backref='users')
-    start_time = DateTimeField(default=datetime.now(TZ))
+    start_time = DateTimeField(default=datetime.utcnow)
     end_time = DateTimeField(null=True)
     total_time = BigIntegerField(default=0)
     xp = BigIntegerField(default=0)
     channel = BigIntegerField()
-    created_at = DateTimeField(default=datetime.now(TZ))
-    updated_at = DateTimeField(default=datetime.now(TZ))
+    created_at = DateTimeField(default=datetime.utcnow)
+    updated_at = DateTimeField(default=datetime.utcnow)
 
     class Meta:
         database = db
 
     def save(self, *args, **kwargs):
-        self.updated_at = datetime.now()
+        self.updated_at = datetime.utcnow()
         return super().save(*args, **kwargs)

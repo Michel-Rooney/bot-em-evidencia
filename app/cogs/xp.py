@@ -248,10 +248,17 @@ class Xp(commands.Cog):
 
         return xp
 
-    def update_study(self, member, user, study):
+    def update_study(self, member, user, study: Study):
+        XP_LIMIT_SECONDS = int(config('XP_LIMIT_SECONDS', 36000))
         start_time = study.start_time
-        end_time = datetime.now(TZ)
+        end_time = datetime.utcnow()
         total_time = end_time - start_time
+
+        if total_time.total_seconds() > XP_LIMIT_SECONDS:
+            study.delete_instance()
+            msg_log(f'{member} passou do limite de horas de estudo seguidas.')
+            return
+
         xp = self.calc_xp(member, total_time)
 
         study.end_time = end_time
@@ -328,7 +335,7 @@ class Xp(commands.Cog):
         hours, minutes = self.total_hours_embed(user)
         channel, channel_hours, channel_minutes = self.most_used_channel(user)
         channel_time = f'**{channel_hours}h {channel_minutes}min**'
-        user_position = self.user_position_rank(member)
+        user_position = self.user_position_rank(member_user)
 
         match offset:
             case 'day':
@@ -450,8 +457,9 @@ class Xp(commands.Cog):
             ).join(
                 Study, on=(User.id == Study.user)
             ).where(
-                fn.TO_CHAR(Study.created_at,
-                           'YYYY-MM') == fn.TO_CHAR(fn.NOW(TZ), 'YYYY-MM')
+                fn.TO_CHAR(
+                    Study.created_at, 'YYYY-MM'
+                ) == fn.TO_CHAR(fn.NOW(), 'YYYY-MM')
             ).group_by(
                 User.id, User.discord
             ).alias('ranked_users')
