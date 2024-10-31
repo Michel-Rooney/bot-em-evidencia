@@ -110,33 +110,39 @@ class Xp(commands.Cog):
     @app_commands.command(description='Mostra o rank de xp.')
     @app_commands.describe(
         member="Mostra a posição do usuário no rank.",
-        mensal="Mostra o rank do mês",
+        offset="Mostra o rank do mês",
     )
-    @app_commands.choices(mensal=[
-        app_commands.Choice(name='Sim', value='1'),
-        app_commands.Choice(name='Não', value='0'),
+    @app_commands.choices(offset=[
+        app_commands.Choice(name='Normal', value='normal'),
+        app_commands.Choice(name='Semanal', value='week'),
+        app_commands.Choice(name='Mensal', value='month'),
     ])
     async def rank(
         self,
         interact: discord.Interaction,
         member: Optional[discord.Member] = None,
-        mensal: Optional[app_commands.Choice[str]] = None,
+        offset: Optional[app_commands.Choice[str]] = None,
     ):
-        mensal_msg = ''
+        offset_msg = ''
 
         if member is None:
             member = interact.user
 
-        if mensal is None:
-            mensal = app_commands.Choice(name='Não', value='0')
+        if offset is None:
+            offset = app_commands.Choice(name='Normal', value='normal')
 
-        if mensal.value == '1':
-            user_position = self.user_position_rank_month(member)
-            users_position = self.users_position_rank_month()
-            mensal_msg = '(Mês)'
-        else:
-            user_position = self.user_position_rank(member)
-            users_position = self.users_position_rank()
+        match offset.value:
+            case 'normal':
+                user_position = self.user_position_rank(member)
+                users_position = self.users_position_rank()
+            case 'week':
+                user_position = self.user_position_rank_week(member)
+                users_position = self.users_position_rank_week()
+                offset_msg = '(Semana)'
+            case 'month':
+                user_position = self.user_position_rank_month(member)
+                users_position = self.users_position_rank_month()
+                offset_msg = '(Mês)'
 
         rank_users_embed = []
         for user in users_position:
@@ -150,19 +156,29 @@ class Xp(commands.Cog):
                 f'#{user["position"]} | {user_mention} - XP: `{user["xp"]}`'
             )
 
-        user_rank_discord = interact.guild.get_member(user_position['discord'])
-        message = (
-            f'**#{user_position["position"]} | {user_rank_discord.mention} '
-            f'- XP: `{user_position["xp"]}`**'
-        )
-        rank_users_embed.append(message)
+        if user_position is not None:
+            user_rank_discord = interact.guild.get_member(
+                user_position['discord']
+            )
+            message = (
+                f'**#{user_position["position"]} | '
+                f'{user_rank_discord.mention} '
+                f'- XP: `{user_position["xp"]}`**'
+            )
+            rank_users_embed.append(message)
+        else:
+            rank_users_embed.append(
+                f'{member.mention} Não possui nenhuma atividade {offset_msg}'
+            )
+
+        print(rank_users_embed)
 
         embed = discord.Embed(
             title="📋 Rank do servidor"
         )
 
         embed.add_field(
-            name=f'🎙Top {LIMIT} - Voz {mensal_msg}',
+            name=f'🎙Top {LIMIT} - Voz {offset_msg}',
             value='\n'.join(rank_users_embed),
             inline=False,
         )
@@ -445,6 +461,28 @@ class Xp(commands.Cog):
             ).alias('ranked_users')
         )
 
+    def get_ranked_users_week(self):
+        ranked_users = (
+            User.select(
+                User.id.alias('id'),
+                User.discord.alias('discord'),
+                fn.SUM(Study.xp).alias('xp'),
+                fn.RANK().over(
+                    order_by=[fn.SUM(Study.xp).desc(), User.id]
+                ).alias('position')
+            ).join(
+                Study, on=(User.id == Study.user)
+            ).where(
+                fn.TO_CHAR(
+                    Study.created_at, 'IYYY-IW'
+                ) == fn.TO_CHAR(fn.NOW(), 'IYYY-IW')
+            ).group_by(
+                User.id, User.discord
+            ).alias('ranked_users')
+        )
+
+        return ranked_users
+
     def get_ranked_users_month(self):
         ranked_users = (
             User.select(
@@ -488,6 +526,27 @@ class Xp(commands.Cog):
 
         return ranked_user
 
+    def user_position_rank_week(self, member):
+        user = self.get_user(member)
+
+        if not user:
+            return None
+
+        ranked_users = self.get_ranked_users_week()
+
+        ranked_user = User.select(
+            ranked_users.c.id.alias('id'),
+            ranked_users.c.discord.alias('discord'),
+            ranked_users.c.xp.alias('xp'),
+            ranked_users.c.position.alias('position')
+        ).from_(
+            ranked_users
+        ).where(
+            ranked_users.c.id == user.id
+        ).dicts().first()
+
+        return ranked_user
+
     def user_position_rank_month(self, member):
         user = self.get_user(member)
 
@@ -512,6 +571,22 @@ class Xp(commands.Cog):
     def users_position_rank(self):
         users_position = self.get_ranked_users().limit(LIMIT).dicts()
         return users_position
+
+    def users_position_rank_week(self):
+        ranked_users = self.get_ranked_users_week()
+
+        ranked_users_limit = User.select(
+            ranked_users.c.id.alias('id'),
+            ranked_users.c.discord.alias('discord'),
+            ranked_users.c.xp.alias('xp'),
+            ranked_users.c.position.alias('position')
+        ).from_(
+            ranked_users
+        ).limit(
+            LIMIT
+        ).dicts()
+
+        return ranked_users_limit
 
     def users_position_rank_month(self):
         ranked_users = self.get_ranked_users_month()
