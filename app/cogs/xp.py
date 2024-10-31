@@ -218,7 +218,7 @@ class Xp(commands.Cog):
                 Study.created_at.desc()
             ).first()
 
-            self.update_study(member, user, study)
+            await self.update_study(member, user, study)
 
         if before.channel is not None and after.channel is not None:
             before_id = before.channel.id
@@ -235,7 +235,7 @@ class Xp(commands.Cog):
                     study = Study.select().where(Study.user == user).order_by(
                         Study.created_at.desc()
                     ).first()
-                    self.update_study(member, user, study)
+                    await self.update_study(member, user, study)
                 except Exception as err:
                     msg_log(f'UPDATE BEFORE IN ALLOWED_CHANNELS - {err}')
 
@@ -264,7 +264,7 @@ class Xp(commands.Cog):
 
         return xp
 
-    def update_study(self, member, user, study: Study):
+    async def update_study(self, member, user, study: Study):
         XP_LIMIT_SECONDS = int(config('XP_LIMIT_SECONDS', 36000))
         start_time = study.start_time
         end_time = datetime.utcnow()
@@ -273,6 +273,16 @@ class Xp(commands.Cog):
         if total_time.total_seconds() > XP_LIMIT_SECONDS:
             study.delete_instance()
             msg_log(f'{member} passou do limite de horas de estudo seguidas.')
+
+            try:
+                await member.send((
+                    f'Você passou do limite de horas de estudo '
+                    '**seguidas permitido '
+                    f'({XP_LIMIT_SECONDS // 3600} horas). **'
+                    'O estudo foi desconsiderado.'
+                ))
+            except Exception as e:
+                msg_log(f'Falha ao enviar mensagem para {member}: {e}')
             return
 
         xp = self.calc_xp(member, total_time)
