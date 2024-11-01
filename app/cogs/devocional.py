@@ -61,7 +61,7 @@ class Devocional(commands.Cog):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         titulo_diario = soup.select_one(
-            'div.block_root__NKXYU:nth-child(1) > h2:nth-child(3)'
+            'div.block_root__NKXYU:nth-child(1) > h2:nth-child(2)'
         )
         mensagem_diaria = soup.select_one(
             '.FragmentView_text__g6Uq2'
@@ -97,7 +97,17 @@ class Devocional(commands.Cog):
 
         embed.add_field(
             name=f"{scraped['titulo'].text.strip()}\n",
-            value='\n'.join(mensagem)
+            value='\n'.join(mensagem),
+            inline=False
+        )
+
+        embed.add_field(
+            name='',
+            value=(
+                'Para mais informações, acesse: '
+                f'[bibliaonline]({DEVOCIONAL_URL})'
+            ),
+            inline=False
         )
 
         embed.set_footer(

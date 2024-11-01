@@ -171,8 +171,6 @@ class Xp(commands.Cog):
                 f'{member.mention} Não possui nenhuma atividade {offset_msg}'
             )
 
-        print(rank_users_embed)
-
         embed = discord.Embed(
             title="📋 Rank do servidor"
         )
