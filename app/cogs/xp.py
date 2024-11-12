@@ -307,13 +307,14 @@ class Xp(commands.Cog):
             case 'fortnightly':
                 categories, values = self.graphic_data(user, days=14)
 
-        bar = plt.bar(categories, values)
+        bar = plt.bar(range(len(categories)), values)
         plt.xlabel('Dia')
         plt.ylabel('Horas')
         plt.title(
             f'Gráfico de Horas Estudadas {today.year} - {target_member.name}'
         )
 
+        plt.xticks(ticks=range(len(categories)), labels=categories)
         plt.xticks(rotation=45, fontsize=6)
         plt.bar_label(bar)
 
