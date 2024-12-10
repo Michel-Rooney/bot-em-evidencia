@@ -10,7 +10,6 @@ from discord.ext.commands import Bot
 from app.utils import msg_log
 
 CON_BR_CHANNEL_ID = int(config('CON_BR_CHANNEL_ID', 0))
-CON_BR_ROLE_NOTICIA_ID = int(config('CON_BR_ROLE_NOTICIA_ID', 0))
 CON_BR_URL = config('CON_BR_URL', '')
 CON_BR_LOOP_INTERVAL_MIN = int(config('CON_BR_LOOP_INTERVAL_MIN', 10))
 
@@ -78,10 +77,5 @@ async def concursos_brasil(bot: Bot, GUILD_ID: int) -> int:
     embed.set_thumbnail(
         url='https://i.ibb.co/KyTkq14/concursos-brasil.jpg'  # noqa: E501
     )
-
-    role_noticias = guild.get_role(CON_BR_ROLE_NOTICIA_ID)
-
-    if role_noticias:
-        return await channel.send(role_noticias.mention, embed=embed)
 
     return await channel.send(embed=embed)
