@@ -61,7 +61,7 @@ class Devocional(commands.Cog):
         soup = BeautifulSoup(response.text, 'html.parser')
 
         titulo_diario = soup.select_one(
-            'div.block_root__NKXYU:nth-child(1) > h2:nth-child(2)'
+            'article.block_root__NKXYU:nth-child(1) > h3:nth-child(2)'
         )
         mensagem_diaria = soup.select_one(
             '.FragmentView_text__g6Uq2'
