@@ -60,130 +60,130 @@ class Xp(commands.Cog):
             f'XP Pong {member.mention}', ephemeral=True
         )
 
-    @app_commands.command(description='Mostra as estatísticas de xp do user.')
-    @app_commands.describe(
-        offset="O período de tempo para o gráfico.",
-        target_member="Usuário que deseja visualizar as estatísticas."
-    )
-    @app_commands.choices(offset=[
-        app_commands.Choice(name='Dia', value='day'),
-        app_commands.Choice(name='Semana', value='week'),
-        app_commands.Choice(name='Quinzenal', value='fortnightly'),
-    ])
-    async def xp(
-            self,
-            interact: discord.Interaction,
-            offset: Optional[app_commands.Choice[str]] = None,
-            target_member: Optional[discord.Member] = None
-    ) -> None:
-        """
-        Retorna as informações referente ao XP
-        """
+    # @app_commands.command(description='Mostra as estatísticas de xp do user.')
+    # @app_commands.describe(
+    #     offset="O período de tempo para o gráfico.",
+    #     target_member="Usuário que deseja visualizar as estatísticas."
+    # )
+    # @app_commands.choices(offset=[
+    #     app_commands.Choice(name='Dia', value='day'),
+    #     app_commands.Choice(name='Semana', value='week'),
+    #     app_commands.Choice(name='Quinzenal', value='fortnightly'),
+    # ])
+    # async def xp(
+    #         self,
+    #         interact: discord.Interaction,
+    #         offset: Optional[app_commands.Choice[str]] = None,
+    #         target_member: Optional[discord.Member] = None
+    # ) -> None:
+    #     """
+    #     Retorna as informações referente ao XP
+    #     """
+    #
+    #     if offset is None:
+    #         offset = app_commands.Choice(name='Semana', value='week')
+    #
+    #     if target_member is None:
+    #         target_member = interact.user
+    #
+    #     member: discord.Member = interact.user
+    #
+    #     user = self.get_user(target_member)
+    #
+    #     if not user:
+    #         message = (
+    #             f'{target_member.mention} Ainda não foi cadastrado na nossa '
+    #             'base de dados. Por favor entre na call WEBCAM ON ou '
+    #             'Participe de algum grupo.'
+    #         )
+    #         await interact.response.send_message(message, ephemeral=True)
+    #         return
+    #
+    #     buffer = self.create_graphic(member, user, target_member, offset.value)
+    #     embed, file = self.create_embed(
+    #         member, target_member, buffer, user, offset.value)
+    #
+    #     await interact.response.send_message(
+    #         member.mention, embed=embed, file=file
+    #     )
 
-        if offset is None:
-            offset = app_commands.Choice(name='Semana', value='week')
-
-        if target_member is None:
-            target_member = interact.user
-
-        member: discord.Member = interact.user
-
-        user = self.get_user(target_member)
-
-        if not user:
-            message = (
-                f'{target_member.mention} Ainda não foi cadastrado na nossa '
-                'base de dados. Por favor entre na call WEBCAM ON ou '
-                'Participe de algum grupo.'
-            )
-            await interact.response.send_message(message, ephemeral=True)
-            return
-
-        buffer = self.create_graphic(member, user, target_member, offset.value)
-        embed, file = self.create_embed(
-            member, target_member, buffer, user, offset.value)
-
-        await interact.response.send_message(
-            member.mention, embed=embed, file=file
-        )
-
-    @app_commands.command(description='Mostra o rank de xp.')
-    @app_commands.describe(
-        member="Mostra a posição do usuário no rank.",
-        offset="Mostra o rank do mês",
-    )
-    @app_commands.choices(offset=[
-        app_commands.Choice(name='Normal', value='normal'),
-        app_commands.Choice(name='Semanal', value='week'),
-        app_commands.Choice(name='Mensal', value='month'),
-    ])
-    async def rank(
-        self,
-        interact: discord.Interaction,
-        member: Optional[discord.Member] = None,
-        offset: Optional[app_commands.Choice[str]] = None,
-    ):
-        offset_msg = ''
-
-        if member is None:
-            member = interact.user
-
-        if offset is None:
-            offset = app_commands.Choice(name='Normal', value='normal')
-
-        match offset.value:
-            case 'normal':
-                user_position = self.user_position_rank(member)
-                users_position = self.users_position_rank()
-            case 'week':
-                user_position = self.user_position_rank_week(member)
-                users_position = self.users_position_rank_week()
-                offset_msg = '(Semana)'
-            case 'month':
-                user_position = self.user_position_rank_month(member)
-                users_position = self.users_position_rank_month()
-                offset_msg = '(Mês)'
-
-        rank_users_embed = []
-        for user in users_position:
-            user_discord = interact.guild.get_member(user['discord'])
-            user_mention = user['discord']
-
-            if user_discord is not None:
-                user_mention = user_discord.mention
-
-            rank_users_embed.append(
-                f'#{user["position"]} | {user_mention} - XP: `{user["xp"]}`'
-            )
-
-        if user_position is not None:
-            user_rank_discord = interact.guild.get_member(
-                user_position['discord']
-            )
-            message = (
-                f'**#{user_position["position"]} | '
-                f'{user_rank_discord.mention} '
-                f'- XP: `{user_position["xp"]}`**'
-            )
-            rank_users_embed.append(message)
-        else:
-            rank_users_embed.append(
-                f'{member.mention} Não possui nenhuma atividade {offset_msg}'
-            )
-
-        embed = discord.Embed(
-            title="📋 Rank do servidor"
-        )
-
-        embed.add_field(
-            name=f'🎙Top {LIMIT} - Voz {offset_msg}',
-            value='\n'.join(rank_users_embed),
-            inline=False,
-        )
-
-        await interact.response.send_message(
-            interact.user.mention, embed=embed
-        )
+    # @app_commands.command(description='Mostra o rank de xp.')
+    # @app_commands.describe(
+    #     member="Mostra a posição do usuário no rank.",
+    #     offset="Mostra o rank do mês",
+    # )
+    # @app_commands.choices(offset=[
+    #     app_commands.Choice(name='Normal', value='normal'),
+    #     app_commands.Choice(name='Semanal', value='week'),
+    #     app_commands.Choice(name='Mensal', value='month'),
+    # ])
+    # async def rank(
+    #     self,
+    #     interact: discord.Interaction,
+    #     member: Optional[discord.Member] = None,
+    #     offset: Optional[app_commands.Choice[str]] = None,
+    # ):
+    #     offset_msg = ''
+    #
+    #     if member is None:
+    #         member = interact.user
+    #
+    #     if offset is None:
+    #         offset = app_commands.Choice(name='Normal', value='normal')
+    #
+    #     match offset.value:
+    #         case 'normal':
+    #             user_position = self.user_position_rank(member)
+    #             users_position = self.users_position_rank()
+    #         case 'week':
+    #             user_position = self.user_position_rank_week(member)
+    #             users_position = self.users_position_rank_week()
+    #             offset_msg = '(Semana)'
+    #         case 'month':
+    #             user_position = self.user_position_rank_month(member)
+    #             users_position = self.users_position_rank_month()
+    #             offset_msg = '(Mês)'
+    #
+    #     rank_users_embed = []
+    #     for user in users_position:
+    #         user_discord = interact.guild.get_member(user['discord'])
+    #         user_mention = user['discord']
+    #
+    #         if user_discord is not None:
+    #             user_mention = user_discord.mention
+    #
+    #         rank_users_embed.append(
+    #             f'#{user["position"]} | {user_mention} - XP: `{user["xp"]}`'
+    #         )
+    #
+    #     if user_position is not None:
+    #         user_rank_discord = interact.guild.get_member(
+    #             user_position['discord']
+    #         )
+    #         message = (
+    #             f'**#{user_position["position"]} | '
+    #             f'{user_rank_discord.mention} '
+    #             f'- XP: `{user_position["xp"]}`**'
+    #         )
+    #         rank_users_embed.append(message)
+    #     else:
+    #         rank_users_embed.append(
+    #             f'{member.mention} Não possui nenhuma atividade {offset_msg}'
+    #         )
+    #
+    #     embed = discord.Embed(
+    #         title="📋 Rank do servidor"
+    #     )
+    #
+    #     embed.add_field(
+    #         name=f'🎙Top {LIMIT} - Voz {offset_msg}',
+    #         value='\n'.join(rank_users_embed),
+    #         inline=False,
+    #     )
+    #
+    #     await interact.response.send_message(
+    #         interact.user.mention, embed=embed
+    #     )
 
     @commands.Cog.listener()
     async def on_voice_state_update(
