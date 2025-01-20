@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO)
 
 @bot.event
 async def on_ready():
-    concursos_brasil.start(bot, GUILD_ID)
+    # concursos_brasil.start(bot, GUILD_ID)
     move_users.start(bot, GUILD_ID)
     # lock_unlock.start(bot, GUILD_ID)
     logging.info(f'Logged in as {bot.user}')
