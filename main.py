@@ -9,12 +9,12 @@ from discord.ext import commands
 
 from app import concursos_brasil, lock_unlock, move_users
 
-TOKEN = config('TOKEN', '')
-GUILD_ID = int(config('GUILD_ID', 0))
+TOKEN = config("TOKEN", "")
+GUILD_ID = int(config("GUILD_ID", 0))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='!b3e ', intents=intents)
+bot = commands.Bot(command_prefix="!b3e ", intents=intents)
 logging.basicConfig(level=logging.INFO)
 
 
@@ -23,7 +23,7 @@ async def on_ready():
     # concursos_brasil.start(bot, GUILD_ID)
     move_users.start(bot, GUILD_ID)
     # lock_unlock.start(bot, GUILD_ID)
-    logging.info(f'Logged in as {bot.user}')
+    logging.info(f"Logged in as {bot.user}")
 
 
 @bot.command()
@@ -108,11 +108,11 @@ async def concursosstop(ctx: commands.Context):
 
 
 async def load():
-    path = os.path.join(BASE_DIR, 'app/cogs')
+    path = os.path.join(BASE_DIR, "app/cogs")
 
     for filename in os.listdir(path):
-        if filename.endswith('.py') and not ('__init__' in filename):
-            await bot.load_extension(f'app.cogs.{filename[:-3]}')
+        if filename.endswith(".py") and not ("__init__" in filename):
+            await bot.load_extension(f"app.cogs.{filename[:-3]}")
 
 
 async def main():

@@ -1,5 +1,5 @@
-# import locale
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import discord
 import requests
@@ -19,6 +19,7 @@ ESTRATEGIA_LOOP_INTERVAL_MIN = int(config('ESTRATEGIA_LOOP_INTERVAL_MIN'))
 UTC = int(config('UTC', -3))
 OFFSET = timedelta(hours=UTC)
 TZ = timezone(OFFSET)
+TIME_ZONE = ZoneInfo('America/Sao_Paulo')
 
 last_news_time = ''
 
@@ -57,7 +58,7 @@ class EstrategiaNoticias(commands.Cog):
         articles = reversed(list(recent_news.children)[:6])
 
         if not last_news_time:
-            last_news_time = datetime.now(TZ)
+            last_news_time = datetime.now(TIME_ZONE)
 
         for article in articles:
             thumb: str = article.select_one('img')['src']
@@ -79,7 +80,7 @@ class EstrategiaNoticias(commands.Cog):
 
             article_time = datetime.strptime(
                 time, '%d %B %Y'
-            ).replace(tzinfo=TZ)
+            ).replace(tzinfo=TIME_ZONE)
 
             if article_time < last_news_time:
                 continue
@@ -99,8 +100,9 @@ class EstrategiaNoticias(commands.Cog):
 
             await channel.send(embed=embed)
 
+        msg_log(article_time)
         last_news_time = article_time + timedelta(minutes=1)
-        return
+        msg_log(last_news_time)
 
 
 async def setup(bot):
